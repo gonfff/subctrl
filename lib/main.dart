@@ -1,122 +1,214 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:subtrackr/infrastructure/persistence/database.dart';
+import 'package:subtrackr/infrastructure/repositories/settings_repository.dart';
+import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subtrackr/presentation/screens/analytics_screen.dart';
+import 'package:subtrackr/presentation/screens/subscriptions_screen.dart';
+import 'package:subtrackr/presentation/theme/theme_preference.dart';
+import 'package:subtrackr/presentation/types/settings_callbacks.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SubtrackrApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SubtrackrApp extends StatefulWidget {
+  const SubtrackrApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<SubtrackrApp> createState() => _SubtrackrAppState();
+}
+
+class _SubtrackrAppState extends State<SubtrackrApp> {
+  ThemePreference _themePreference = ThemePreference.system;
+  Locale? _locale;
+  String? _baseCurrencyCode =
+      'USD'; // Default value to avoid null during initialization
+  bool _isCurrencyRatesAutoDownloadEnabled = true;
+  late final SettingsRepository _settingsRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _settingsRepository = SettingsRepository(AppDatabase());
+    unawaited(_loadInitialSettings());
+  }
+
+  void _handleThemePreferenceChanged(ThemePreference preference) {
+    setState(() {
+      _themePreference = preference;
+    });
+    unawaited(_settingsRepository.setThemePreference(preference.name));
+  }
+
+  void _handleLocaleChanged(Locale? locale) {
+    setState(() {
+      _locale = locale;
+    });
+    unawaited(_settingsRepository.setLocaleCode(locale?.languageCode));
+  }
+
+  Future<void> _loadInitialSettings() async {
+    final storedTheme = await _settingsRepository.getThemePreference();
+    final storedLocale = await _settingsRepository.getLocaleCode();
+    var storedBaseCurrency = await _settingsRepository.getBaseCurrencyCode();
+    final shouldDownloadRates = await _settingsRepository
+        .getCurrencyRatesAutoDownloadEnabled();
+
+    final themePreference = ThemePreference.values.firstWhere(
+      (value) => value.name == storedTheme,
+      orElse: () => ThemePreference.system,
+    );
+
+    Locale? locale;
+    if (storedLocale != null) {
+      locale = _resolveLocale(storedLocale);
+    }
+
+    final shouldPersistBaseCurrency = storedBaseCurrency == null;
+    storedBaseCurrency ??= 'USD';
+
+    if (!mounted) return;
+    setState(() {
+      _themePreference = themePreference;
+      _locale = locale;
+      _baseCurrencyCode = storedBaseCurrency;
+      _isCurrencyRatesAutoDownloadEnabled = shouldDownloadRates;
+    });
+
+    if (shouldPersistBaseCurrency) {
+      await _settingsRepository.setBaseCurrencyCode(storedBaseCurrency);
+    }
+  }
+
+  Locale _resolveLocale(String code) {
+    try {
+      return AppLocalizations.supportedLocales.firstWhere(
+        (locale) => locale.languageCode == code,
+      );
+    } catch (_) {
+      return Locale(code);
+    }
+  }
+
+  Future<void> _handleBaseCurrencyChanged(String? code) async {
+    if (code == null) return;
+    setState(() {
+      _baseCurrencyCode = code;
+    });
+    await _settingsRepository.setBaseCurrencyCode(code);
+  }
+
+  void _handleCurrencyRatesAutoDownloadChanged(bool value) {
+    setState(() {
+      _isCurrencyRatesAutoDownloadEnabled = value;
+    });
+    unawaited(_settingsRepository.setCurrencyRatesAutoDownloadEnabled(value));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+    final brightness = switch (_themePreference) {
+      ThemePreference.system => null,
+      ThemePreference.light => Brightness.light,
+      ThemePreference.dark => Brightness.dark,
+    };
+
+    return CupertinoApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Subtrackr',
+      theme: brightness == null
+          ? null
+          : CupertinoThemeData(brightness: brightness),
+      locale: _locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: HomeTabs(
+        themePreference: _themePreference,
+        onThemePreferenceChanged: _handleThemePreferenceChanged,
+        selectedLocale: _locale,
+        onLocaleChanged: _handleLocaleChanged,
+        baseCurrencyCode: _baseCurrencyCode,
+        onBaseCurrencyChanged: _handleBaseCurrencyChanged,
+        currencyRatesAutoDownloadEnabled: _isCurrencyRatesAutoDownloadEnabled,
+        onCurrencyRatesAutoDownloadChanged:
+            _handleCurrencyRatesAutoDownloadChanged,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomeTabs extends StatelessWidget {
+  const HomeTabs({
+    super.key,
+    required this.themePreference,
+    required this.onThemePreferenceChanged,
+    required this.selectedLocale,
+    required this.onLocaleChanged,
+    required this.baseCurrencyCode,
+    required this.onBaseCurrencyChanged,
+    required this.currencyRatesAutoDownloadEnabled,
+    required this.onCurrencyRatesAutoDownloadChanged,
+  });
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final ThemePreference themePreference;
+  final ValueChanged<ThemePreference> onThemePreferenceChanged;
+  final Locale? selectedLocale;
+  final ValueChanged<Locale?> onLocaleChanged;
+  final String? baseCurrencyCode;
+  final BaseCurrencyChangedCallback onBaseCurrencyChanged;
+  final bool currencyRatesAutoDownloadEnabled;
+  final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    final localizations = AppLocalizations.of(context);
+    final localeKey = selectedLocale?.languageCode ?? 'system';
+    final themeKey = themePreference.name;
+    final baseCurrencyKey = baseCurrencyCode ?? 'none';
+
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.square_list),
+            label: localizations.subscriptionsTitle,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.chart_bar),
+            label: localizations.analyticsTitle,
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      tabBuilder: (context, index) {
+        return CupertinoTabView(
+          key: index == 0
+              ? ValueKey('subscriptions-$themeKey-$localeKey-$baseCurrencyKey')
+              : null,
+          builder: (context) {
+            switch (index) {
+              case 0:
+                return SubscriptionsScreen(
+                  themePreference: themePreference,
+                  onThemePreferenceChanged: onThemePreferenceChanged,
+                  selectedLocale: selectedLocale,
+                  onLocaleChanged: onLocaleChanged,
+                  baseCurrencyCode: baseCurrencyCode,
+                  onBaseCurrencyChanged: onBaseCurrencyChanged,
+                  currencyRatesAutoDownloadEnabled:
+                      currencyRatesAutoDownloadEnabled,
+                  onCurrencyRatesAutoDownloadChanged:
+                      onCurrencyRatesAutoDownloadChanged,
+                );
+              case 1:
+                return const AnalyticsScreen();
+              default:
+                return const SizedBox.shrink();
+            }
+          },
+        );
+      },
     );
   }
 }
