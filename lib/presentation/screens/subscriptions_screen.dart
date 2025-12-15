@@ -14,6 +14,7 @@ import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 import 'package:subtrackr/infrastructure/repositories/subscription_repository.dart';
 import 'package:subtrackr/infrastructure/repositories/tag_repository.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/theme_preference.dart';
 import 'package:subtrackr/presentation/types/settings_callbacks.dart';
 import 'package:subtrackr/presentation/widgets/add_subscription_sheet.dart';
@@ -304,6 +305,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
       navigationBar: CupertinoNavigationBar(
         middle: Text(localizations.subscriptionsTitle),
         border: null,

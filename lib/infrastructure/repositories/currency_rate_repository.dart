@@ -60,6 +60,16 @@ class CurrencyRateRepository {
     return _database.deleteCurrencyRates(baseCode);
   }
 
+  Future<void> deleteRate({
+    required String baseCode,
+    required String quoteCode,
+  }) {
+    return _database.deleteCurrencyRate(
+      baseCode: baseCode,
+      quoteCode: quoteCode,
+    );
+  }
+
   Stream<List<CurrencyRate>> watchRates(String baseCode) {
     return _database.watchCurrencyRates(baseCode).map(
           (rows) => rows

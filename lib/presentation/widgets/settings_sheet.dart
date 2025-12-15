@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:subtrackr/presentation/screens/settings_screen.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/theme_preference.dart';
 import 'package:subtrackr/presentation/types/settings_callbacks.dart';
 
@@ -28,9 +29,7 @@ class SettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = CupertinoColors.systemBackground.resolveFrom(
-      context,
-    );
+    final backgroundColor = AppTheme.scaffoldBackgroundColor(context);
     final handleColor = CupertinoColors.systemGrey4.resolveFrom(context);
 
     return GestureDetector(
@@ -62,18 +61,30 @@ class SettingsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: SettingsScreen(
-                        themePreference: themePreference,
-                        onThemePreferenceChanged: onThemePreferenceChanged,
-                        selectedLocale: selectedLocale,
-                        onLocaleChanged: onLocaleChanged,
-                        baseCurrencyCode: baseCurrencyCode,
-                        onBaseCurrencyChanged: onBaseCurrencyChanged,
-                        currencyRatesAutoDownloadEnabled:
-                            currencyRatesAutoDownloadEnabled,
-                        onCurrencyRatesAutoDownloadChanged:
-                            onCurrencyRatesAutoDownloadChanged,
-                        onRequestClose: () => Navigator.of(context).maybePop(),
+                      child: MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        child: Navigator(
+                          onGenerateInitialRoutes: (_, __) => [
+                            CupertinoPageRoute<void>(
+                              builder: (innerContext) => SettingsScreen(
+                                themePreference: themePreference,
+                                onThemePreferenceChanged:
+                                    onThemePreferenceChanged,
+                                selectedLocale: selectedLocale,
+                                onLocaleChanged: onLocaleChanged,
+                                baseCurrencyCode: baseCurrencyCode,
+                                onBaseCurrencyChanged: onBaseCurrencyChanged,
+                                currencyRatesAutoDownloadEnabled:
+                                    currencyRatesAutoDownloadEnabled,
+                                onCurrencyRatesAutoDownloadChanged:
+                                    onCurrencyRatesAutoDownloadChanged,
+                                onRequestClose: () =>
+                                    Navigator.of(context).maybePop(),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

@@ -61,7 +61,7 @@ class AppLocalizations {
       'settingsCurrencyAddAction': 'Add currency',
       'settingsCurrencyDuplicateError': 'Currency already exists',
       'settingsCurrencyDeleteConfirm': 'Delete this custom currency?',
-      'settingsCurrencyRatesAutoDownload': 'Download rates from Yahoo',
+      'settingsCurrencyRatesAutoDownload': 'Download rates from the internet',
       'settingsCurrencyRatesTitle': 'Currency rates',
       'settingsCurrencyRatesEmpty': 'No rates yet',
       'settingsCurrencyRatesSortCurrency': 'By currency',
@@ -174,7 +174,7 @@ class AppLocalizations {
       'settingsCurrencyAddAction': 'Сохранить валюту',
       'settingsCurrencyDuplicateError': 'Такая валюта уже есть',
       'settingsCurrencyDeleteConfirm': 'Удалить эту валюту?',
-      'settingsCurrencyRatesAutoDownload': 'Загружать курсы из Yahoo',
+      'settingsCurrencyRatesAutoDownload': 'Загружать курсы из интернета',
       'settingsCurrencyRatesTitle': 'Курсы валют',
       'settingsCurrencyRatesEmpty': 'Пока нет данных',
       'settingsCurrencyRatesSortCurrency': 'По валюте',
@@ -360,8 +360,7 @@ class AppLocalizations {
   String get subscriptionTagNone => _strings['subscriptionTagNone']!;
   String get subscriptionDeleteConfirm =>
       _strings['subscriptionDeleteConfirm']!;
-  String get subscriptionActiveLabel =>
-      _strings['subscriptionActiveLabel']!;
+  String get subscriptionActiveLabel => _strings['subscriptionActiveLabel']!;
   String get tagPickerTitle => _strings['tagPickerTitle']!;
   String get tagSearchPlaceholder => _strings['tagSearchPlaceholder']!;
   String get tagSearchEmpty => _strings['tagSearchEmpty']!;
@@ -374,8 +373,7 @@ class AppLocalizations {
   String get emptyStateMessage => _strings['emptyStateMessage']!;
   String get subscriptionSearchPlaceholder =>
       _strings['subscriptionSearchPlaceholder']!;
-  String get subscriptionSearchEmpty =>
-      _strings['subscriptionSearchEmpty']!;
+  String get subscriptionSearchEmpty => _strings['subscriptionSearchEmpty']!;
   String baseCurrencyValue(String amount) =>
       _strings['baseCurrencyValue']!.replaceAll('{amount}', amount);
   String get billingCycleMonthly => _strings['billingCycleMonthly']!;

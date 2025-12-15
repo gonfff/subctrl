@@ -263,6 +263,19 @@ class AppDatabase extends _$AppDatabase {
         .go();
   }
 
+  Future<void> deleteCurrencyRate({
+    required String baseCode,
+    required String quoteCode,
+  }) {
+    return (delete(currencyRatesTable)
+          ..where(
+            (tbl) =>
+                tbl.baseCode.equals(baseCode.toUpperCase()) &
+                tbl.quoteCode.equals(quoteCode.toUpperCase()),
+          ))
+        .go();
+  }
+
   Future<List<TagsTableData>> getTags() {
     return (select(tagsTable)..orderBy([(t) => OrderingTerm(expression: t.name)]))
         .get();

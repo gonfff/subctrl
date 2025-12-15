@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/cupertino.dart';
-
 import 'package:subtrackr/domain/entities/currency.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
@@ -10,7 +9,9 @@ import 'package:subtrackr/presentation/l10n/app_localizations.dart';
 import 'package:subtrackr/presentation/screens/about_screen.dart';
 import 'package:subtrackr/presentation/screens/currency_rates_screen.dart';
 import 'package:subtrackr/presentation/screens/currency_settings_screen.dart';
+import 'package:subtrackr/presentation/screens/support_screen.dart';
 import 'package:subtrackr/presentation/screens/tag_settings_screen.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/theme_preference.dart';
 import 'package:subtrackr/presentation/types/settings_callbacks.dart';
 import 'package:subtrackr/presentation/widgets/currency_picker.dart';
@@ -257,7 +258,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _openCurrencySettings({required CurrencyListCategory category}) async {
+  Future<void> _openCurrencySettings({
+    required CurrencyListCategory category,
+  }) async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
         builder: (context) => CurrencySettingsScreen(
@@ -271,9 +274,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openTagSettings() async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
-        builder: (context) => TagSettingsScreen(
-          onClose: widget.onRequestClose,
-        ),
+        builder: (context) => TagSettingsScreen(onClose: widget.onRequestClose),
       ),
     );
   }
@@ -281,9 +282,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openAbout() async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
-        builder: (context) => AboutScreen(
-          onClose: widget.onRequestClose,
-        ),
+        builder: (context) => AboutScreen(onClose: widget.onRequestClose),
+      ),
+    );
+  }
+
+  Future<void> _openSupport() async {
+    await Navigator.of(context).push(
+      CupertinoPageRoute<void>(
+        builder: (context) => SupportScreen(onClose: widget.onRequestClose),
       ),
     );
   }
@@ -300,9 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (baseCode == null) return;
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
-        builder: (context) => CurrencyRatesScreen(
-          baseCurrencyCode: baseCode,
-        ),
+        builder: (context) => CurrencyRatesScreen(baseCurrencyCode: baseCode),
       ),
     );
   }
@@ -332,108 +337,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final canOpenRates =
         !_isLoadingCurrencies &&
         baseCurrencyLabel != localizations.settingsBaseCurrencyUnset;
+    final mediaPadding = MediaQuery.paddingOf(context);
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text(localizations.settingsTitle),
-        trailing: CupertinoButton(
+        automaticallyImplyLeading: false,
+        leading: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: widget.onRequestClose,
           child: Text(localizations.settingsClose),
         ),
+        middle: Text(localizations.settingsTitle),
       ),
-      child: SafeArea(
-        child: ListView(
-          children: [
-            CupertinoFormSection.insetGrouped(
-              header: Text(localizations.settingsGeneralSection),
-              children: [
-                _SettingsTile(
-                  label: localizations.settingsBaseCurrency,
-                  value: baseCurrencyLabel,
-                  onTap: _isLoadingCurrencies ? null : _pickBaseCurrency,
-                  showChevron: true,
+      child: ListView(
+        padding: EdgeInsets.only(top: 16, bottom: mediaPadding.bottom + 16),
+        children: [
+          CupertinoFormSection.insetGrouped(
+            header: Text(localizations.settingsGeneralSection),
+            children: [
+              _SettingsTile(
+                label: localizations.settingsBaseCurrency,
+                value: baseCurrencyLabel,
+                onTap: _isLoadingCurrencies ? null : _pickBaseCurrency,
+                showChevron: true,
+              ),
+              _SettingsTile(
+                label: localizations.settingsLanguageSection,
+                value: languageValue,
+                onTap: _selectLanguage,
+                showChevron: true,
+              ),
+              _SettingsTile(
+                label: localizations.settingsThemeSection,
+                value: themeLabel,
+                onTap: _selectTheme,
+                showChevron: true,
+              ),
+            ],
+          ),
+          CupertinoFormSection.insetGrouped(
+            header: Text(localizations.settingsCurrenciesSection),
+            children: [
+              _SettingsTile(
+                label: localizations.settingsCurrenciesDefaultList,
+                value: localizations.settingsCurrenciesEnabledLabel(
+                  builtInEnabledCount,
                 ),
-                _SettingsTile(
-                  label: localizations.settingsLanguageSection,
-                  value: languageValue,
-                  onTap: _selectLanguage,
-                  showChevron: true,
+                onTap: () => _openCurrencySettings(
+                  category: CurrencyListCategory.builtIn,
                 ),
-                _SettingsTile(
-                  label: localizations.settingsThemeSection,
-                  value: themeLabel,
-                  onTap: _selectTheme,
-                  showChevron: true,
+                showChevron: true,
+              ),
+              _SettingsTile(
+                label: localizations.settingsCurrenciesCustomList,
+                value: localizations.settingsCurrenciesEnabledLabel(
+                  customEnabledCount,
                 ),
-              ],
-            ),
-            CupertinoFormSection.insetGrouped(
-              header: Text(localizations.settingsCurrenciesSection),
-              children: [
-                _SettingsTile(
-                  label: localizations.settingsCurrenciesDefaultList,
-                  value: localizations.settingsCurrenciesEnabledLabel(
-                    builtInEnabledCount,
-                  ),
-                  onTap: () => _openCurrencySettings(category: CurrencyListCategory.builtIn),
-                  showChevron: true,
+                onTap: () => _openCurrencySettings(
+                  category: CurrencyListCategory.custom,
                 ),
-                _SettingsTile(
-                  label: localizations.settingsCurrenciesCustomList,
-                  value: localizations.settingsCurrenciesEnabledLabel(
-                    customEnabledCount,
-                  ),
-                  onTap: () => _openCurrencySettings(category: CurrencyListCategory.custom),
-                  showChevron: true,
-                ),
-                _SettingsSwitchTile(
-                  label: localizations.settingsCurrencyRatesAutoDownload,
-                  value: _isCurrencyRatesAutoDownloadEnabled,
-                  onChanged: _handleCurrencyRatesAutoDownloadChanged,
-                ),
-                _SettingsTile(
-                  label: localizations.settingsCurrencyRatesTitle,
-                  value: canOpenRates ? '' : baseCurrencyLabel,
-                  onTap: canOpenRates ? _openCurrencyRates : null,
-                  showChevron: true,
-                ),
-              ],
-            ),
-            CupertinoFormSection.insetGrouped(
-              header: Text(localizations.settingsTagsSection),
-              children: [
-                _SettingsTile(
-                  label: localizations.settingsTagsTitle,
-                  value: localizations.settingsTagsManage,
-                  onTap: _openTagSettings,
-                  showChevron: true,
-                ),
-              ],
-            ),
-            CupertinoFormSection.insetGrouped(
-              header: Text(localizations.settingsAboutSection),
-              children: [
-                _SettingsTile(
-                  label: localizations.settingsAboutSection,
-                  value: localizations.settingsAboutAuthor,
-                  onTap: _openAbout,
-                  showChevron: true,
-                ),
-              ],
-            ),
-          ],
-        ),
+                showChevron: true,
+              ),
+              _SettingsSwitchTile(
+                label: localizations.settingsCurrencyRatesAutoDownload,
+                value: _isCurrencyRatesAutoDownloadEnabled,
+                onChanged: _handleCurrencyRatesAutoDownloadChanged,
+              ),
+              _SettingsTile(
+                label: localizations.settingsCurrencyRatesTitle,
+                value: canOpenRates ? '' : baseCurrencyLabel,
+                onTap: canOpenRates ? _openCurrencyRates : null,
+                showChevron: true,
+              ),
+            ],
+          ),
+          CupertinoFormSection.insetGrouped(
+            header: Text(localizations.settingsTagsSection),
+            children: [
+              _SettingsTile(
+                label: localizations.settingsTagsTitle,
+                value: localizations.settingsTagsManage,
+                onTap: _openTagSettings,
+                showChevron: true,
+              ),
+            ],
+          ),
+          CupertinoFormSection.insetGrouped(
+            header: Text(localizations.settingsAboutSection),
+            children: [
+              _SettingsTile(
+                label: localizations.settingsAboutSection,
+                value: '',
+                onTap: _openAbout,
+                showChevron: true,
+              ),
+              _SettingsTile(
+                label: localizations.settingsAboutSupport,
+                value: '',
+                onTap: _openSupport,
+                showChevron: true,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-void _log(
-  String message, {
-  Object? error,
-  StackTrace? stackTrace,
-}) {
+void _log(String message, {Object? error, StackTrace? stackTrace}) {
   developer.log(
     message,
     name: 'SettingsScreen',

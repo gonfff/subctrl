@@ -7,6 +7,7 @@ import 'package:subtrackr/infrastructure/persistence/database.dart';
 import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 
 enum CurrencyListCategory { builtIn, custom }
 
@@ -211,6 +212,14 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     }
   }
 
+  void _handleBackPressed() {
+    Navigator.of(context).maybePop().then((didPop) {
+      if (!didPop) {
+        widget.onClose();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
@@ -281,13 +290,13 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     ];
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text(localizations.settingsCurrenciesTitle),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.onClose,
-          child: Text(localizations.settingsClose),
+        automaticallyImplyLeading: false,
+        leading: CupertinoNavigationBarBackButton(
+          onPressed: _handleBackPressed,
         ),
+        middle: Text(localizations.settingsCurrenciesTitle),
       ),
       child: SafeArea(
         child: Column(

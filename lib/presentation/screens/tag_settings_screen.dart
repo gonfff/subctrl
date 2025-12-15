@@ -6,6 +6,7 @@ import 'package:subtrackr/domain/entities/tag.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 import 'package:subtrackr/infrastructure/repositories/tag_repository.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/tag_colors.dart';
 
 class TagSettingsScreen extends StatefulWidget {
@@ -247,13 +248,13 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
     );
 
     return CupertinoPageScaffold(
+      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
       navigationBar: CupertinoNavigationBar(
-        middle: Text(localizations.settingsTagsTitle),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.onClose,
-          child: Text(localizations.settingsClose),
+        automaticallyImplyLeading: false,
+        leading: CupertinoNavigationBarBackButton(
+          onPressed: _handleBackPressed,
         ),
+        middle: Text(localizations.settingsTagsTitle),
       ),
       child: SafeArea(
         child: Column(
@@ -294,6 +295,14 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
         );
       },
     );
+  }
+
+  void _handleBackPressed() {
+    Navigator.of(context).maybePop().then((didPop) {
+      if (!didPop) {
+        widget.onClose();
+      }
+    });
   }
 }
 

@@ -6,7 +6,7 @@ import 'package:subtrackr/domain/entities/tag.dart';
 import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
 import 'package:subtrackr/presentation/formatters/date_formatter.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/mappers/billing_cycle_labels.dart';
+import 'package:subtrackr/presentation/theme/app_theme.dart';
 
 class SubscriptionCard extends StatelessWidget {
   const SubscriptionCard({
@@ -30,7 +30,7 @@ class SubscriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = CupertinoColors.systemGrey6.resolveFrom(context);
+    final backgroundColor = AppTheme.cardBackgroundColor(context);
     final textTheme = CupertinoTheme.of(context).textTheme;
     final baseStyle = textTheme.textStyle;
     final localizations = AppLocalizations.of(context);
@@ -83,6 +83,7 @@ class SubscriptionCard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: RichText(
@@ -100,24 +101,22 @@ class SubscriptionCard extends StatelessWidget {
                       style: baseStyle.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color:
-                            baseStyle.color ??
+                        color: baseStyle.color ??
                             CupertinoColors.label.resolveFrom(context),
                       ),
                     ),
                   ],
                 ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              billingCycleLongLabel(subscription.cycle, localizations),
-              style: baseStyle.copyWith(
-                fontSize: 13,
-                color: CupertinoColors.systemGrey.resolveFrom(context),
-              ),
-              textAlign: TextAlign.right,
+            _BaseCurrencyValue(
+              subscription: subscription,
+              rateMap: rateMap,
+              baseCurrency: baseCurrency,
+              baseCurrencyCode: baseCurrencyCode,
             ),
           ],
         ),
@@ -147,17 +146,7 @@ class SubscriptionCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              content,
-              const SizedBox(height: 4),
-              _BaseCurrencyValue(
-                subscription: subscription,
-                rateMap: rateMap,
-                subscriptionCurrency: currency,
-                baseCurrency: baseCurrency,
-                baseCurrencyCode: baseCurrencyCode,
-              ),
-            ],
+            children: [content],
           ),
         ),
       ),
@@ -219,14 +208,12 @@ class _BaseCurrencyValue extends StatelessWidget {
   const _BaseCurrencyValue({
     required this.subscription,
     required this.rateMap,
-    required this.subscriptionCurrency,
     required this.baseCurrency,
     required this.baseCurrencyCode,
   });
 
   final Subscription subscription;
   final Map<String, CurrencyRate>? rateMap;
-  final Currency? subscriptionCurrency;
   final Currency? baseCurrency;
   final String? baseCurrencyCode;
 
@@ -238,33 +225,36 @@ class _BaseCurrencyValue extends StatelessWidget {
     }
     final rates = rateMap!;
     final quoteCode = subscription.currency.toUpperCase();
-    double? converted;
-    String effectiveBaseCode = baseCode;
     if (quoteCode == baseCode) {
-      converted = subscription.amount;
-    } else {
-      final rate = rates[quoteCode];
-      if (rate == null) return const SizedBox.shrink();
-      converted = subscription.amount * rate.rate;
-      effectiveBaseCode = rate.baseCode.toUpperCase();
+      return const SizedBox.shrink();
     }
+    final rate = rates[quoteCode];
+    if (rate == null) return const SizedBox.shrink();
+    final converted = subscription.amount * rate.rate;
+    final effectiveBaseCode = rate.baseCode.toUpperCase();
     final formatted = formatAmountWithCurrency(
       converted,
       effectiveBaseCode,
       currency: baseCurrency,
     );
 
-    final displayText = AppLocalizations.of(
-      context,
-    ).baseCurrencyValue(formatted);
-    final textStyle = CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-      fontSize: 13,
-      color: CupertinoColors.systemGrey.resolveFrom(context),
+    final displayText = AppLocalizations.of(context).baseCurrencyValue(
+      formatted,
     );
+    final textStyle = CupertinoTheme.of(context).textTheme.textStyle.copyWith(
+          fontSize: 13,
+          color: CupertinoColors.systemGrey.resolveFrom(context),
+        );
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Text(displayText, style: textStyle, textAlign: TextAlign.right),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 0),
+      child: Text(
+        displayText,
+        style: textStyle,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.right,
+      ),
     );
   }
 }
