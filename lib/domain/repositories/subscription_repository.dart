@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
 
 abstract class SubscriptionRepository {
   Stream<List<Subscription>> watchSubscriptions();

@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/currencies/add_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/delete_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/get_currencies_use_case.dart';
-import 'package:subtrackr/application/currencies/set_currency_enabled_use_case.dart';
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
+import 'package:subctrl/application/currencies/add_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/delete_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
+import 'package:subctrl/application/currencies/set_currency_enabled_use_case.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
 
 class _MockCurrencyRepository extends Mock implements CurrencyRepository {}
 
@@ -21,16 +21,17 @@ void main() {
 
   test('GetCurrenciesUseCase seeds before fetching', () async {
     when(repository.seedIfEmpty).thenAnswer((_) async {});
-    when(() => repository.getCurrencies(onlyEnabled: true))
-        .thenAnswer((_) async => const [
-              Currency(
-                code: 'USD',
-                name: 'US Dollar',
-                symbol: r'$',
-                isEnabled: true,
-                isCustom: false,
-              ),
-            ]);
+    when(() => repository.getCurrencies(onlyEnabled: true)).thenAnswer(
+      (_) async => const [
+        Currency(
+          code: 'USD',
+          name: 'US Dollar',
+          symbol: r'$',
+          isEnabled: true,
+          isCustom: false,
+        ),
+      ],
+    );
     final useCase = GetCurrenciesUseCase(repository);
     final result = await useCase(onlyEnabled: true);
     expect(result, hasLength(1));
@@ -41,8 +42,9 @@ void main() {
   test('WatchCurrenciesUseCase seeds then yields stream', () async {
     when(repository.seedIfEmpty).thenAnswer((_) async {});
     final controller = StreamController<List<Currency>>();
-    when(() => repository.watchCurrencies(onlyEnabled: false))
-        .thenAnswer((_) => controller.stream);
+    when(
+      () => repository.watchCurrencies(onlyEnabled: false),
+    ).thenAnswer((_) => controller.stream);
     final useCase = WatchCurrenciesUseCase(repository);
     final currency = const Currency(
       code: 'EUR',
@@ -101,8 +103,7 @@ void main() {
   });
 
   test('DeleteCustomCurrencyUseCase delegates to repository', () async {
-    when(() => repository.deleteCustomCurrency(any()))
-        .thenAnswer((_) async {});
+    when(() => repository.deleteCustomCurrency(any())).thenAnswer((_) async {});
     final useCase = DeleteCustomCurrencyUseCase(repository);
     await useCase('gbp');
     verify(() => repository.deleteCustomCurrency('gbp')).called(1);

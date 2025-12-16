@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/repositories/currency_rate_repository.dart';
+import 'package:subctrl/domain/repositories/currency_rate_repository.dart';
 
 class DeleteCurrencyRateUseCase {
   DeleteCurrencyRateUseCase(this._repository);

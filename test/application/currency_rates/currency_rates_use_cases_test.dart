@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/currency_rates/delete_currency_rate_use_case.dart';
-import 'package:subtrackr/application/currency_rates/fetch_subscription_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/get_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/save_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/watch_currency_rates_use_case.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/currency_rate_repository.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/application/currency_rates/delete_currency_rate_use_case.dart';
+import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/currency_rate_repository.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
 
 class _MockCurrencyRateRepository extends Mock
     implements CurrencyRateRepository {}
@@ -49,8 +49,9 @@ void main() {
 
   test('WatchCurrencyRatesUseCase normalizes base code', () async {
     final controller = StreamController<List<CurrencyRate>>();
-    when(() => repository.watchRates(any()))
-        .thenAnswer((_) => controller.stream);
+    when(
+      () => repository.watchRates(any()),
+    ).thenAnswer((_) => controller.stream);
     final useCase = WatchCurrencyRatesUseCase(repository);
     final expectation = expectLater(useCase('usd'), emitsDone);
     await controller.close();
@@ -59,8 +60,7 @@ void main() {
   });
 
   test('GetCurrencyRatesUseCase normalizes code before delegating', () async {
-    when(() => repository.getRates(any()))
-        .thenAnswer((_) async => const []);
+    when(() => repository.getRates(any())).thenAnswer((_) async => const []);
     final useCase = GetCurrencyRatesUseCase(repository);
     await useCase('eur');
     verify(() => repository.getRates('EUR')).called(1);
@@ -108,15 +108,10 @@ void main() {
       ),
     ).thenAnswer((_) async => const []);
     final useCase = FetchSubscriptionRatesUseCase(provider);
-    await useCase(
-      baseCurrencyCode: 'usd',
-      subscriptions: const [],
-    );
+    await useCase(baseCurrencyCode: 'usd', subscriptions: const []);
     verify(
-      () => provider.fetchRates(
-        baseCurrencyCode: 'usd',
-        subscriptions: const [],
-      ),
+      () =>
+          provider.fetchRates(baseCurrencyCode: 'usd', subscriptions: const []),
     ).called(1);
   });
 }

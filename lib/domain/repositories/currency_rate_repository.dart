@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
 
 abstract class CurrencyRateRepository {
   Future<void> saveRates({

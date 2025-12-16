@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/presentation/formatters/currency_formatter.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
 Future<String?> showCurrencyPicker({
   required BuildContext context,
@@ -18,8 +18,9 @@ Future<String?> showCurrencyPicker({
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setModalState) {
-          final backgroundColor =
-              CupertinoColors.systemBackground.resolveFrom(context);
+          final backgroundColor = CupertinoColors.systemBackground.resolveFrom(
+            context,
+          );
           final filtered = currencies.where((currency) {
             if (query.isEmpty) return true;
             final normalizedQuery = query.toLowerCase();
@@ -84,7 +85,7 @@ Future<String?> showCurrencyPicker({
                               final code = currency.code;
                               final isSelected =
                                   normalizedSelected != null &&
-                                      code.toUpperCase() == normalizedSelected;
+                                  code.toUpperCase() == normalizedSelected;
 
                               return CupertinoButton(
                                 padding: EdgeInsets.zero,
@@ -98,7 +99,7 @@ Future<String?> showCurrencyPicker({
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? CupertinoColors.systemGrey5
-                                            .resolveFrom(context)
+                                              .resolveFrom(context)
                                         : backgroundColor,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -108,9 +109,9 @@ Future<String?> showCurrencyPicker({
                                       Expanded(
                                         child: Text(
                                           currencyDisplayLabel(currency),
-                                          style: CupertinoTheme.of(context)
-                                              .textTheme
-                                              .textStyle,
+                                          style: CupertinoTheme.of(
+                                            context,
+                                          ).textTheme.textStyle,
                                         ),
                                       ),
                                       if (isSelected)

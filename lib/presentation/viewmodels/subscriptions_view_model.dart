@@ -3,22 +3,22 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
 
-import 'package:subtrackr/application/currencies/get_currencies_use_case.dart';
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/application/currency_rates/fetch_subscription_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/get_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/save_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/watch_currency_rates_use_case.dart';
-import 'package:subtrackr/application/subscriptions/add_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/delete_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/update_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/watch_subscriptions_use_case.dart';
-import 'package:subtrackr/application/tags/watch_tags_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
+import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
 
 class SubscriptionsViewModel extends ChangeNotifier {
   SubscriptionsViewModel({
@@ -35,17 +35,17 @@ class SubscriptionsViewModel extends ChangeNotifier {
     required WatchTagsUseCase watchTagsUseCase,
     required String? initialBaseCurrencyCode,
     required bool initialAutoDownloadEnabled,
-  })  : _watchSubscriptionsUseCase = watchSubscriptionsUseCase,
-        _addSubscriptionUseCase = addSubscriptionUseCase,
-        _updateSubscriptionUseCase = updateSubscriptionUseCase,
-        _deleteSubscriptionUseCase = deleteSubscriptionUseCase,
-        _watchCurrenciesUseCase = watchCurrenciesUseCase,
-        _getCurrenciesUseCase = getCurrenciesUseCase,
-        _watchCurrencyRatesUseCase = watchCurrencyRatesUseCase,
-        _getCurrencyRatesUseCase = getCurrencyRatesUseCase,
-        _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
-        _fetchSubscriptionRatesUseCase = fetchSubscriptionRatesUseCase,
-        _watchTagsUseCase = watchTagsUseCase {
+  }) : _watchSubscriptionsUseCase = watchSubscriptionsUseCase,
+       _addSubscriptionUseCase = addSubscriptionUseCase,
+       _updateSubscriptionUseCase = updateSubscriptionUseCase,
+       _deleteSubscriptionUseCase = deleteSubscriptionUseCase,
+       _watchCurrenciesUseCase = watchCurrenciesUseCase,
+       _getCurrenciesUseCase = getCurrenciesUseCase,
+       _watchCurrencyRatesUseCase = watchCurrencyRatesUseCase,
+       _getCurrencyRatesUseCase = getCurrencyRatesUseCase,
+       _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
+       _fetchSubscriptionRatesUseCase = fetchSubscriptionRatesUseCase,
+       _watchTagsUseCase = watchTagsUseCase {
     _baseCurrencyCode = initialBaseCurrencyCode?.toUpperCase();
     _autoDownloadEnabled = initialAutoDownloadEnabled;
     _listenToSubscriptions();
@@ -173,8 +173,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
     final currencies = await _getCurrenciesUseCase();
     _currencies = currencies;
     _currencyMap = {
-      for (final currency in currencies)
-        currency.code.toUpperCase(): currency,
+      for (final currency in currencies) currency.code.toUpperCase(): currency,
     };
     _isLoadingCurrencies = false;
     notifyListeners();
@@ -182,16 +181,16 @@ class SubscriptionsViewModel extends ChangeNotifier {
 
   void _listenToSubscriptions() {
     _subscriptionsSubscription?.cancel();
-    _subscriptionsSubscription = _watchSubscriptionsUseCase().listen(
-      (subscriptions) {
-        _subscriptions = subscriptions;
-        _isLoadingSubscriptions = false;
-        notifyListeners();
-        if (_autoDownloadEnabled) {
-          unawaited(_refreshCurrencyRatesForSubscriptions());
-        }
-      },
-    );
+    _subscriptionsSubscription = _watchSubscriptionsUseCase().listen((
+      subscriptions,
+    ) {
+      _subscriptions = subscriptions;
+      _isLoadingSubscriptions = false;
+      notifyListeners();
+      if (_autoDownloadEnabled) {
+        unawaited(_refreshCurrencyRatesForSubscriptions());
+      }
+    });
   }
 
   void _listenToTags() {
@@ -219,11 +218,10 @@ class SubscriptionsViewModel extends ChangeNotifier {
   void _listenToCurrencyRates() {
     final baseCode = (_baseCurrencyCode ?? 'USD').toUpperCase();
     _currencyRatesSubscription?.cancel();
-    _currencyRatesSubscription =
-        _watchCurrencyRatesUseCase(baseCode).listen((rates) {
-      _rateMap = {
-        for (final rate in rates) rate.quoteCode.toUpperCase(): rate,
-      };
+    _currencyRatesSubscription = _watchCurrencyRatesUseCase(baseCode).listen((
+      rates,
+    ) {
+      _rateMap = {for (final rate in rates) rate.quoteCode.toUpperCase(): rate};
       notifyListeners();
     });
   }
@@ -268,10 +266,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
       if (rates.isEmpty) {
         return;
       }
-      await _saveCurrencyRatesUseCase(
-        baseCurrencyCode: baseCode,
-        rates: rates,
-      );
+      await _saveCurrencyRatesUseCase(baseCurrencyCode: baseCode, rates: rates);
     } on CurrencyRatesFetchException catch (error, stackTrace) {
       _log(
         'Failed to refresh currency rates: ${error.message}',
@@ -298,11 +293,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  void _log(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) {
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
     developer.log(
       message,
       name: 'SubscriptionsViewModel',

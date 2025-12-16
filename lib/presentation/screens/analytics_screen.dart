@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});

@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
 
 abstract class CurrencyRatesProvider {
   Future<List<CurrencyRate>> fetchRates({

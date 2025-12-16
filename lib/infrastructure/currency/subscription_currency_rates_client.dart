@@ -1,15 +1,15 @@
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
-import 'package:subtrackr/infrastructure/currency/yahoo_finance_client.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/infrastructure/currency/yahoo_finance_client.dart';
 
 class SubscriptionCurrencyRatesClient implements CurrencyRatesProvider {
   SubscriptionCurrencyRatesClient({
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
     required CurrencyRepository currencyRepository,
-  })  : _yahooClient = yahooFinanceCurrencyClient,
-        _currencyRepository = currencyRepository;
+  }) : _yahooClient = yahooFinanceCurrencyClient,
+       _currencyRepository = currencyRepository;
 
   final YahooFinanceCurrencyClient _yahooClient;
   final CurrencyRepository _currencyRepository;

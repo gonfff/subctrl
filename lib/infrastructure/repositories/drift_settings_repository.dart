@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/repositories/settings_repository.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
+import 'package:subctrl/domain/repositories/settings_repository.dart';
+import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftSettingsRepository implements SettingsRepository {
   DriftSettingsRepository(this._database);

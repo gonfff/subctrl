@@ -1,25 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/screens/analytics_screen.dart';
-import 'package:subtrackr/presentation/screens/subscriptions_screen.dart';
-import 'package:subtrackr/presentation/theme/theme_preference.dart';
-import 'package:subtrackr/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/screens/analytics_screen.dart';
+import 'package:subctrl/presentation/screens/subscriptions_screen.dart';
+import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 void main() {
-  runApp(const SubtrackrApp());
+  runApp(const SubctrlApp());
 }
 
-class SubtrackrApp extends StatefulWidget {
-  const SubtrackrApp({super.key});
+class SubctrlApp extends StatefulWidget {
+  const SubctrlApp({super.key});
 
   @override
-  State<SubtrackrApp> createState() => _SubtrackrAppState();
+  State<SubctrlApp> createState() => _SubctrlAppState();
 }
 
-class _SubtrackrAppState extends State<SubtrackrApp> {
+class _SubctrlAppState extends State<SubctrlApp> {
   ThemePreference _themePreference = ThemePreference.system;
   Locale? _locale;
   String? _baseCurrencyCode =
@@ -51,10 +51,9 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
   Future<void> _loadInitialSettings() async {
     final storedTheme = await _dependencies.getThemePreferenceUseCase();
     final storedLocale = await _dependencies.getLocaleCodeUseCase();
-    var storedBaseCurrency =
-        await _dependencies.getBaseCurrencyCodeUseCase();
-    final shouldDownloadRates =
-        await _dependencies.getCurrencyRatesAutoDownloadUseCase();
+    var storedBaseCurrency = await _dependencies.getBaseCurrencyCodeUseCase();
+    final shouldDownloadRates = await _dependencies
+        .getCurrencyRatesAutoDownloadUseCase();
 
     final themePreference = ThemePreference.values.firstWhere(
       (value) => value.name == storedTheme,
@@ -104,9 +103,7 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
     setState(() {
       _isCurrencyRatesAutoDownloadEnabled = value;
     });
-    unawaited(
-      _dependencies.setCurrencyRatesAutoDownloadUseCase(value),
-    );
+    unawaited(_dependencies.setCurrencyRatesAutoDownloadUseCase(value));
   }
 
   @override
@@ -125,7 +122,7 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
 
     return CupertinoApp(
       debugShowCheckedModeBanner: false,
-      title: 'Subtrackr',
+      title: 'subctrl',
       theme: brightness == null
           ? null
           : CupertinoThemeData(brightness: brightness),

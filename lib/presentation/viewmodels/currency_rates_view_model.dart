@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:subtrackr/application/currencies/get_currencies_use_case.dart';
-import 'package:subtrackr/application/currency_rates/delete_currency_rate_use_case.dart';
-import 'package:subtrackr/application/currency_rates/save_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/watch_currency_rates_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
+import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
+import 'package:subctrl/application/currency_rates/delete_currency_rate_use_case.dart';
+import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
 
 class CurrencyRatesViewModel extends ChangeNotifier {
   CurrencyRatesViewModel({
@@ -16,11 +16,11 @@ class CurrencyRatesViewModel extends ChangeNotifier {
     required DeleteCurrencyRateUseCase deleteCurrencyRateUseCase,
     required GetCurrenciesUseCase getCurrenciesUseCase,
     required String baseCurrencyCode,
-  })  : _watchCurrencyRatesUseCase = watchCurrencyRatesUseCase,
-        _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
-        _deleteCurrencyRateUseCase = deleteCurrencyRateUseCase,
-        _getCurrenciesUseCase = getCurrenciesUseCase,
-        _baseCurrencyCode = baseCurrencyCode.toUpperCase() {
+  }) : _watchCurrencyRatesUseCase = watchCurrencyRatesUseCase,
+       _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
+       _deleteCurrencyRateUseCase = deleteCurrencyRateUseCase,
+       _getCurrenciesUseCase = getCurrenciesUseCase,
+       _baseCurrencyCode = baseCurrencyCode.toUpperCase() {
     _subscribeRates();
     unawaited(_loadCurrencies());
   }
@@ -61,8 +61,9 @@ class CurrencyRatesViewModel extends ChangeNotifier {
 
   void _subscribeRates() {
     _ratesSubscription?.cancel();
-    _ratesSubscription =
-        _watchCurrencyRatesUseCase(_baseCurrencyCode).listen((rates) {
+    _ratesSubscription = _watchCurrencyRatesUseCase(_baseCurrencyCode).listen((
+      rates,
+    ) {
       _rates = rates;
       _isLoadingRates = false;
       notifyListeners();

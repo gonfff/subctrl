@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency.dart';
 
 abstract class CurrencyRepository {
   Future<void> seedIfEmpty();

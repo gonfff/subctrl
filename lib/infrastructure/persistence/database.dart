@@ -5,19 +5,19 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-import 'package:subtrackr/infrastructure/persistence/seeds/currency_seed_data.dart';
-import 'package:subtrackr/infrastructure/persistence/tables/currencies_table.dart';
-import 'package:subtrackr/infrastructure/persistence/tables/currency_rates_table.dart';
-import 'package:subtrackr/infrastructure/persistence/tables/settings_table.dart';
-import 'package:subtrackr/infrastructure/persistence/tables/subscriptions_table.dart';
-import 'package:subtrackr/infrastructure/persistence/tables/tags_table.dart';
+import 'package:subctrl/infrastructure/persistence/seeds/currency_seed_data.dart';
+import 'package:subctrl/infrastructure/persistence/tables/currencies_table.dart';
+import 'package:subctrl/infrastructure/persistence/tables/currency_rates_table.dart';
+import 'package:subctrl/infrastructure/persistence/tables/settings_table.dart';
+import 'package:subctrl/infrastructure/persistence/tables/subscriptions_table.dart';
+import 'package:subctrl/infrastructure/persistence/tables/tags_table.dart';
 
 part 'database.g.dart';
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, 'subtrackr.db'));
+    final file = File(p.join(dir.path, 'subctrl.db'));
     return NativeDatabase.createInBackground(file);
   });
 }
@@ -239,52 +239,51 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Stream<List<CurrencyRatesTableData>> watchCurrencyRates(String baseCode) {
-    return (select(currencyRatesTable)
-          ..where((tbl) => tbl.baseCode.equals(baseCode.toUpperCase())))
-        .watch();
+    return (select(
+      currencyRatesTable,
+    )..where((tbl) => tbl.baseCode.equals(baseCode.toUpperCase()))).watch();
   }
 
   Future<CurrencyRatesTableData?> findCurrencyRate({
     required String baseCode,
     required String quoteCode,
   }) {
-    return (select(currencyRatesTable)
-          ..where(
-            (tbl) =>
-                tbl.baseCode.equals(baseCode.toUpperCase()) &
-                tbl.quoteCode.equals(quoteCode.toUpperCase()),
-          ))
+    return (select(currencyRatesTable)..where(
+          (tbl) =>
+              tbl.baseCode.equals(baseCode.toUpperCase()) &
+              tbl.quoteCode.equals(quoteCode.toUpperCase()),
+        ))
         .getSingleOrNull();
   }
 
   Future<int> deleteCurrencyRates(String baseCode) {
-    return (delete(currencyRatesTable)
-          ..where((tbl) => tbl.baseCode.equals(baseCode.toUpperCase())))
-        .go();
+    return (delete(
+      currencyRatesTable,
+    )..where((tbl) => tbl.baseCode.equals(baseCode.toUpperCase()))).go();
   }
 
   Future<void> deleteCurrencyRate({
     required String baseCode,
     required String quoteCode,
   }) {
-    return (delete(currencyRatesTable)
-          ..where(
-            (tbl) =>
-                tbl.baseCode.equals(baseCode.toUpperCase()) &
-                tbl.quoteCode.equals(quoteCode.toUpperCase()),
-          ))
+    return (delete(currencyRatesTable)..where(
+          (tbl) =>
+              tbl.baseCode.equals(baseCode.toUpperCase()) &
+              tbl.quoteCode.equals(quoteCode.toUpperCase()),
+        ))
         .go();
   }
 
   Future<List<TagsTableData>> getTags() {
-    return (select(tagsTable)..orderBy([(t) => OrderingTerm(expression: t.name)]))
-        .get();
+    return (select(
+      tagsTable,
+    )..orderBy([(t) => OrderingTerm(expression: t.name)])).get();
   }
 
   Stream<List<TagsTableData>> watchTags() {
-    return (select(tagsTable)
-          ..orderBy([(t) => OrderingTerm(expression: t.name)]))
-        .watch();
+    return (select(
+      tagsTable,
+    )..orderBy([(t) => OrderingTerm(expression: t.name)])).watch();
   }
 
   Future<int> insertTag(TagsTableCompanion companion) {
@@ -292,9 +291,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> updateTag(int id, TagsTableCompanion companion) {
-    return (update(tagsTable)..where((tbl) => tbl.id.equals(id))).write(
-      companion,
-    );
+    return (update(
+      tagsTable,
+    )..where((tbl) => tbl.id.equals(id))).write(companion);
   }
 
   Future<void> deleteTag(int id) {

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
-import 'package:subtrackr/presentation/formatters/date_formatter.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/presentation/formatters/currency_formatter.dart';
+import 'package:subctrl/presentation/formatters/date_formatter.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
 
 class SubscriptionCard extends StatelessWidget {
   const SubscriptionCard({
@@ -101,7 +101,8 @@ class SubscriptionCard extends StatelessWidget {
                       style: baseStyle.copyWith(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: baseStyle.color ??
+                        color:
+                            baseStyle.color ??
                             CupertinoColors.label.resolveFrom(context),
                       ),
                     ),
@@ -238,13 +239,13 @@ class _BaseCurrencyValue extends StatelessWidget {
       currency: baseCurrency,
     );
 
-    final displayText = AppLocalizations.of(context).baseCurrencyValue(
-      formatted,
-    );
+    final displayText = AppLocalizations.of(
+      context,
+    ).baseCurrencyValue(formatted);
     final textStyle = CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          fontSize: 13,
-          color: CupertinoColors.systemGrey.resolveFrom(context),
-        );
+      fontSize: 13,
+      color: CupertinoColors.systemGrey.resolveFrom(context),
+    );
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 0),

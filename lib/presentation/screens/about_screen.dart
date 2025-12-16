@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key, required this.onClose});

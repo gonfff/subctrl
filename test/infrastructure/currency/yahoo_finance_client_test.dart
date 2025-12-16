@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/infrastructure/currency/yahoo_finance_client.dart';
+import 'package:subctrl/infrastructure/currency/yahoo_finance_client.dart';
 
 class _MockHttpClient extends Mock implements http.Client {}
 
@@ -26,16 +26,15 @@ void main() {
 
   test('fetchRates returns parsed rates from Yahoo response', () async {
     when(
-      () => httpClient.get(
-        any(),
-        headers: any(named: 'headers'),
-      ),
+      () => httpClient.get(any(), headers: any(named: 'headers')),
     ).thenAnswer((invocation) async {
       final uri = invocation.positionalArguments.first as Uri;
       if (uri.host == 'fc.yahoo.com') {
-        return http.Response('', 200, headers: {
-          'set-cookie': 'session=ABCDEFGHIJKLMNOPQRST; Path=/',
-        });
+        return http.Response(
+          '',
+          200,
+          headers: {'set-cookie': 'session=ABCDEFGHIJKLMNOPQRST; Path=/'},
+        );
       }
       if (uri.path == '/v1/test/getcrumb') {
         return http.Response('crumb-token', 200);
@@ -63,10 +62,7 @@ void main() {
     expect(rates.first.baseCode, 'USD');
     expect(rates.first.quoteCode, 'EUR');
     verify(
-      () => httpClient.get(
-        any(),
-        headers: any(named: 'headers'),
-      ),
+      () => httpClient.get(any(), headers: any(named: 'headers')),
     ).called(greaterThanOrEqualTo(3));
   });
 }

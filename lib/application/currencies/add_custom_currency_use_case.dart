@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
 
 class AddCustomCurrencyUseCase {
   AddCustomCurrencyUseCase(this._repository);

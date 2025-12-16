@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/domain/repositories/tag_repository.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/domain/repositories/tag_repository.dart';
 
 class UpdateTagUseCase {
   UpdateTagUseCase(this._repository);

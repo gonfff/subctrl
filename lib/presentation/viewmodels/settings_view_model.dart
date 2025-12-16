@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   SettingsViewModel(this._watchCurrenciesUseCase) {

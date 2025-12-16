@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
 
 class DeleteCustomCurrencyUseCase {
   DeleteCustomCurrencyUseCase(this._repository);

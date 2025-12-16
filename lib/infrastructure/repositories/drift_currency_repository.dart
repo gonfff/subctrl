@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
+import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftCurrencyRepository implements CurrencyRepository {
   DriftCurrencyRepository(this._database);

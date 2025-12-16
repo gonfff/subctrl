@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency.dart';
 
 String formatAmountWithCurrency(
   double amount,

@@ -1,16 +1,16 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/theme/theme_preference.dart';
-import 'package:subtrackr/presentation/types/settings_callbacks.dart';
-import 'package:subtrackr/presentation/viewmodels/subscriptions_view_model.dart';
-import 'package:subtrackr/presentation/widgets/add_subscription_sheet.dart';
-import 'package:subtrackr/presentation/widgets/empty_subscriptions_state.dart';
-import 'package:subtrackr/presentation/widgets/settings_sheet.dart';
-import 'package:subtrackr/presentation/widgets/subscription_card.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
+import 'package:subctrl/presentation/widgets/add_subscription_sheet.dart';
+import 'package:subctrl/presentation/widgets/empty_subscriptions_state.dart';
+import 'package:subctrl/presentation/widgets/settings_sheet.dart';
+import 'package:subctrl/presentation/widgets/subscription_card.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({
@@ -50,27 +50,20 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     super.initState();
     _scrollController = ScrollController();
     _viewModel = SubscriptionsViewModel(
-      watchSubscriptionsUseCase:
-          widget.dependencies.watchSubscriptionsUseCase,
+      watchSubscriptionsUseCase: widget.dependencies.watchSubscriptionsUseCase,
       addSubscriptionUseCase: widget.dependencies.addSubscriptionUseCase,
-      updateSubscriptionUseCase:
-          widget.dependencies.updateSubscriptionUseCase,
-      deleteSubscriptionUseCase:
-          widget.dependencies.deleteSubscriptionUseCase,
+      updateSubscriptionUseCase: widget.dependencies.updateSubscriptionUseCase,
+      deleteSubscriptionUseCase: widget.dependencies.deleteSubscriptionUseCase,
       watchCurrenciesUseCase: widget.dependencies.watchCurrenciesUseCase,
       getCurrenciesUseCase: widget.dependencies.getCurrenciesUseCase,
-      watchCurrencyRatesUseCase:
-          widget.dependencies.watchCurrencyRatesUseCase,
-      getCurrencyRatesUseCase:
-          widget.dependencies.getCurrencyRatesUseCase,
-      saveCurrencyRatesUseCase:
-          widget.dependencies.saveCurrencyRatesUseCase,
+      watchCurrencyRatesUseCase: widget.dependencies.watchCurrencyRatesUseCase,
+      getCurrencyRatesUseCase: widget.dependencies.getCurrencyRatesUseCase,
+      saveCurrencyRatesUseCase: widget.dependencies.saveCurrencyRatesUseCase,
       fetchSubscriptionRatesUseCase:
           widget.dependencies.fetchSubscriptionRatesUseCase,
       watchTagsUseCase: widget.dependencies.watchTagsUseCase,
       initialBaseCurrencyCode: widget.baseCurrencyCode,
-      initialAutoDownloadEnabled:
-          widget.currencyRatesAutoDownloadEnabled,
+      initialAutoDownloadEnabled: widget.currencyRatesAutoDownloadEnabled,
     );
     _searchController.addListener(() {
       _viewModel.setSearchQuery(_searchController.text);
@@ -232,8 +225,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           onLocaleChanged: widget.onLocaleChanged,
           baseCurrencyCode: widget.baseCurrencyCode,
           onBaseCurrencyChanged: widget.onBaseCurrencyChanged,
-          currencyRatesAutoDownloadEnabled:
-              _viewModel.autoDownloadEnabled,
+          currencyRatesAutoDownloadEnabled: _viewModel.autoDownloadEnabled,
           onCurrencyRatesAutoDownloadChanged:
               _handleCurrencyRatesAutoDownloadPreferenceChanged,
         );
@@ -247,8 +239,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
         child: CupertinoSearchTextField(
           controller: _searchController,
-          placeholder:
-              AppLocalizations.of(context).subscriptionSearchPlaceholder,
+          placeholder: AppLocalizations.of(
+            context,
+          ).subscriptionSearchPlaceholder,
         ),
       ),
     );
@@ -279,9 +272,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: Center(
-            child: Text(
-              AppLocalizations.of(context).subscriptionSearchEmpty,
-            ),
+            child: Text(AppLocalizations.of(context).subscriptionSearchEmpty),
           ),
         ),
       ];
@@ -304,8 +295,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             }
             final subscriptionIndex = index ~/ 2;
             final subscription = subscriptions[subscriptionIndex];
-            final currency =
-                currencyMap[subscription.currency.toUpperCase()];
+            final currency = currencyMap[subscription.currency.toUpperCase()];
             final tag = subscription.tagId != null
                 ? tagMap[subscription.tagId!]
                 : null;

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/viewmodels/currency_rates_view_model.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/viewmodels/currency_rates_view_model.dart';
 
 enum CurrencyRatesSort { currency, date }
 
@@ -33,12 +33,9 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
   void initState() {
     super.initState();
     _viewModel = CurrencyRatesViewModel(
-      watchCurrencyRatesUseCase:
-          widget.dependencies.watchCurrencyRatesUseCase,
-      saveCurrencyRatesUseCase:
-          widget.dependencies.saveCurrencyRatesUseCase,
-      deleteCurrencyRateUseCase:
-          widget.dependencies.deleteCurrencyRateUseCase,
+      watchCurrencyRatesUseCase: widget.dependencies.watchCurrencyRatesUseCase,
+      saveCurrencyRatesUseCase: widget.dependencies.saveCurrencyRatesUseCase,
+      deleteCurrencyRateUseCase: widget.dependencies.deleteCurrencyRateUseCase,
       getCurrenciesUseCase: widget.dependencies.getCurrenciesUseCase,
       baseCurrencyCode: widget.baseCurrencyCode,
     );
@@ -85,25 +82,25 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
         final body = _viewModel.isLoadingRates
             ? const Center(child: CupertinoActivityIndicator())
             : _viewModel.rates.isEmpty
-                ? Center(
-                    child: Text(
-                      localizations.settingsCurrencyRatesEmpty,
-                      style: CupertinoTheme.of(context).textTheme.textStyle,
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    itemBuilder: (context, index) {
-                      final rate = sortedRates[index];
-                      return _CurrencyRateRow(
-                        rate: rate,
-                        baseCurrencyCode: widget.baseCurrencyCode,
-                        onDelete: () => _deleteRate(rate),
-                      );
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemCount: sortedRates.length,
+            ? Center(
+                child: Text(
+                  localizations.settingsCurrencyRatesEmpty,
+                  style: CupertinoTheme.of(context).textTheme.textStyle,
+                ),
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                itemBuilder: (context, index) {
+                  final rate = sortedRates[index];
+                  return _CurrencyRateRow(
+                    rate: rate,
+                    baseCurrencyCode: widget.baseCurrencyCode,
+                    onDelete: () => _deleteRate(rate),
                   );
+                },
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemCount: sortedRates.length,
+              );
 
         return CupertinoPageScaffold(
           backgroundColor: AppTheme.scaffoldBackgroundColor(context),
@@ -375,8 +372,7 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
                       widget.localizations.settingsCurrencyRatesValueLabel,
                       style: theme.copyWith(
                         fontSize: 13,
-                        color:
-                            CupertinoColors.systemGrey.resolveFrom(context),
+                        color: CupertinoColors.systemGrey.resolveFrom(context),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -394,8 +390,7 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
                       widget.localizations.settingsCurrencyRatesDateLabel,
                       style: theme.copyWith(
                         fontSize: 13,
-                        color:
-                            CupertinoColors.systemGrey.resolveFrom(context),
+                        color: CupertinoColors.systemGrey.resolveFrom(context),
                       ),
                     ),
                     SizedBox(
@@ -403,8 +398,9 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
                       child: CupertinoDatePicker(
                         mode: CupertinoDatePickerMode.date,
                         initialDateTime: _selectedDate,
-                        maximumDate:
-                            DateTime.now().add(const Duration(days: 3650)),
+                        maximumDate: DateTime.now().add(
+                          const Duration(days: 3650),
+                        ),
                         onDateTimeChanged: (value) {
                           setState(() {
                             _selectedDate = value;

@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:subtrackr/application/tags/create_tag_use_case.dart';
-import 'package:subtrackr/application/tags/delete_tag_use_case.dart';
-import 'package:subtrackr/application/tags/update_tag_use_case.dart';
-import 'package:subtrackr/application/tags/watch_tags_use_case.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
+import 'package:subctrl/application/tags/create_tag_use_case.dart';
+import 'package:subctrl/application/tags/delete_tag_use_case.dart';
+import 'package:subctrl/application/tags/update_tag_use_case.dart';
+import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/domain/entities/tag.dart';
 
 class TagSettingsViewModel extends ChangeNotifier {
   TagSettingsViewModel({
@@ -14,10 +14,10 @@ class TagSettingsViewModel extends ChangeNotifier {
     required CreateTagUseCase createTagUseCase,
     required UpdateTagUseCase updateTagUseCase,
     required DeleteTagUseCase deleteTagUseCase,
-  })  : _watchTagsUseCase = watchTagsUseCase,
-        _createTagUseCase = createTagUseCase,
-        _updateTagUseCase = updateTagUseCase,
-        _deleteTagUseCase = deleteTagUseCase {
+  }) : _watchTagsUseCase = watchTagsUseCase,
+       _createTagUseCase = createTagUseCase,
+       _updateTagUseCase = updateTagUseCase,
+       _deleteTagUseCase = deleteTagUseCase {
     _subscribe();
   }
 
@@ -33,10 +33,7 @@ class TagSettingsViewModel extends ChangeNotifier {
   List<Tag> get tags => _tags;
   bool get isLoading => _isLoading;
 
-  Future<Tag> createTag({
-    required String name,
-    required String colorHex,
-  }) {
+  Future<Tag> createTag({required String name, required String colorHex}) {
     return _createTagUseCase(name: name, colorHex: colorHex);
   }
 

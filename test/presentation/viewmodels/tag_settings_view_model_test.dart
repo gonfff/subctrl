@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/tags/create_tag_use_case.dart';
-import 'package:subtrackr/application/tags/delete_tag_use_case.dart';
-import 'package:subtrackr/application/tags/update_tag_use_case.dart';
-import 'package:subtrackr/application/tags/watch_tags_use_case.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/presentation/viewmodels/tag_settings_view_model.dart';
+import 'package:subctrl/application/tags/create_tag_use_case.dart';
+import 'package:subctrl/application/tags/delete_tag_use_case.dart';
+import 'package:subctrl/application/tags/update_tag_use_case.dart';
+import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/presentation/viewmodels/tag_settings_view_model.dart';
 
 class _MockWatchTagsUseCase extends Mock implements WatchTagsUseCase {}
 
@@ -39,10 +39,12 @@ void main() {
     tagsController = StreamController<List<Tag>>();
 
     when(() => watchTagsUseCase()).thenAnswer((_) => tagsController.stream);
-    when(() => createTagUseCase(
-          name: any(named: 'name'),
-          colorHex: any(named: 'colorHex'),
-        )).thenAnswer(
+    when(
+      () => createTagUseCase(
+        name: any(named: 'name'),
+        colorHex: any(named: 'colorHex'),
+      ),
+    ).thenAnswer(
       (_) async => const Tag(id: 2, name: 'New', colorHex: '#FFAA00'),
     );
     when(() => updateTagUseCase(any())).thenAnswer((_) async {});

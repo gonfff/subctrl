@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
+import 'package:subctrl/domain/entities/tag.dart';
 
 void main() {
   test('copyWith overrides provided fields and keeps others', () {

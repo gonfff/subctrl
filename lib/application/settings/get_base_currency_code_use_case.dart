@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/repositories/settings_repository.dart';
+import 'package:subctrl/domain/repositories/settings_repository.dart';
 
 class GetBaseCurrencyCodeUseCase {
   GetBaseCurrencyCodeUseCase(this._repository);

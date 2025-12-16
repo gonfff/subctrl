@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:subtrackr/application/currencies/add_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/delete_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/set_currency_enabled_use_case.dart';
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
+import 'package:subctrl/application/currencies/add_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/delete_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/set_currency_enabled_use_case.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
 
 class CurrencySettingsViewModel extends ChangeNotifier {
   CurrencySettingsViewModel({
@@ -14,10 +14,10 @@ class CurrencySettingsViewModel extends ChangeNotifier {
     required SetCurrencyEnabledUseCase setCurrencyEnabledUseCase,
     required AddCustomCurrencyUseCase addCustomCurrencyUseCase,
     required DeleteCustomCurrencyUseCase deleteCustomCurrencyUseCase,
-  })  : _watchCurrenciesUseCase = watchCurrenciesUseCase,
-        _setCurrencyEnabledUseCase = setCurrencyEnabledUseCase,
-        _addCustomCurrencyUseCase = addCustomCurrencyUseCase,
-        _deleteCustomCurrencyUseCase = deleteCustomCurrencyUseCase {
+  }) : _watchCurrenciesUseCase = watchCurrenciesUseCase,
+       _setCurrencyEnabledUseCase = setCurrencyEnabledUseCase,
+       _addCustomCurrencyUseCase = addCustomCurrencyUseCase,
+       _deleteCustomCurrencyUseCase = deleteCustomCurrencyUseCase {
     _subscribe();
   }
 
@@ -33,10 +33,7 @@ class CurrencySettingsViewModel extends ChangeNotifier {
   List<Currency> get currencies => _currencies;
   bool get isLoading => _isLoading;
 
-  Future<void> toggleCurrency({
-    required String code,
-    required bool isEnabled,
-  }) {
+  Future<void> toggleCurrency({required String code, required bool isEnabled}) {
     return _setCurrencyEnabledUseCase(code: code, isEnabled: isEnabled);
   }
 
@@ -49,11 +46,7 @@ class CurrencySettingsViewModel extends ChangeNotifier {
     required String name,
     String? symbol,
   }) {
-    return _addCustomCurrencyUseCase(
-      code: code,
-      name: name,
-      symbol: symbol,
-    );
+    return _addCustomCurrencyUseCase(code: code, name: name, symbol: symbol);
   }
 
   void _subscribe() {

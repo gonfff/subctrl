@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/tags/create_tag_use_case.dart';
-import 'package:subtrackr/application/tags/delete_tag_use_case.dart';
-import 'package:subtrackr/application/tags/update_tag_use_case.dart';
-import 'package:subtrackr/application/tags/watch_tags_use_case.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/domain/repositories/tag_repository.dart';
+import 'package:subctrl/application/tags/create_tag_use_case.dart';
+import 'package:subctrl/application/tags/delete_tag_use_case.dart';
+import 'package:subctrl/application/tags/update_tag_use_case.dart';
+import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/domain/repositories/tag_repository.dart';
 
 class _MockTagRepository extends Mock implements TagRepository {}
 

@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/repositories/subscription_repository.dart';
+import 'package:subctrl/domain/repositories/subscription_repository.dart';
 
 class DeleteSubscriptionUseCase {
   DeleteSubscriptionUseCase(this._repository);

@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/presentation/screens/settings_screen.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/theme/theme_preference.dart';
-import 'package:subtrackr/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/presentation/screens/settings_screen.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 class SettingsSheet extends StatelessWidget {
   const SettingsSheet({

@@ -1,6 +1,6 @@
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
 
 class FetchSubscriptionRatesUseCase {
   FetchSubscriptionRatesUseCase(this._provider);

@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/presentation/formatters/date_formatter.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/mappers/billing_cycle_labels.dart';
-import 'package:subtrackr/presentation/widgets/currency_picker.dart';
-import 'package:subtrackr/presentation/widgets/tag_picker.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/presentation/formatters/date_formatter.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/mappers/billing_cycle_labels.dart';
+import 'package:subctrl/presentation/widgets/currency_picker.dart';
+import 'package:subctrl/presentation/widgets/tag_picker.dart';
 
 class AddSubscriptionSheet extends StatefulWidget {
   const AddSubscriptionSheet({

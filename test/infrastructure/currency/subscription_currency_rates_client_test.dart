@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/currency_repository.dart';
-import 'package:subtrackr/infrastructure/currency/subscription_currency_rates_client.dart';
-import 'package:subtrackr/infrastructure/currency/yahoo_finance_client.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/currency_repository.dart';
+import 'package:subctrl/infrastructure/currency/subscription_currency_rates_client.dart';
+import 'package:subctrl/infrastructure/currency/yahoo_finance_client.dart';
 
 class _MockYahooFinanceCurrencyClient extends Mock
     implements YahooFinanceCurrencyClient {}
@@ -84,13 +84,11 @@ void main() {
 
       expect(result, equals(expectedRates));
       verify(currencyRepository.seedIfEmpty).called(1);
-      verify(() => currencyRepository.getCurrencies(onlyEnabled: true))
-          .called(1);
       verify(
-        () => yahooClient.fetchRates(
-          baseCode: 'USD',
-          quoteCodes: {'EUR'},
-        ),
+        () => currencyRepository.getCurrencies(onlyEnabled: true),
+      ).called(1);
+      verify(
+        () => yahooClient.fetchRates(baseCode: 'USD', quoteCodes: {'EUR'}),
       ).called(1);
     },
   );

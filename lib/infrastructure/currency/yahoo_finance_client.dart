@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
 
 class YahooFinanceCurrencyClient {
   YahooFinanceCurrencyClient({http.Client? httpClient})
@@ -120,10 +120,7 @@ class YahooFinanceCurrencyClient {
       });
       _log('Request URI: $uri');
 
-      final response = await _httpClient.get(
-        uri,
-        headers: _quoteHeaders(),
-      );
+      final response = await _httpClient.get(uri, headers: _quoteHeaders());
       _log('Response status: ${response.statusCode}');
 
       if (response.statusCode != 200) {
@@ -200,7 +197,8 @@ class YahooFinanceCurrencyClient {
   Map<String, String> _defaultHeaders() {
     return {
       'User-Agent': _userAgent,
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept':
+          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
       'Connection': 'keep-alive',
     };
@@ -215,11 +213,7 @@ class YahooFinanceCurrencyClient {
     };
   }
 
-  void _log(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) {
+  void _log(String message, {Object? error, StackTrace? stackTrace}) {
     developer.log(
       message,
       name: 'YahooFinance',

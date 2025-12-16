@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/subscription_repository.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/subscription_repository.dart';
 
 class AddSubscriptionUseCase {
   AddSubscriptionUseCase(this._repository);

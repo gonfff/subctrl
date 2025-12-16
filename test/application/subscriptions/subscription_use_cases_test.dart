@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/subscriptions/add_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/delete_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/update_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/watch_subscriptions_use_case.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/subscription_repository.dart';
+import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/subscription_repository.dart';
 
 class _MockSubscriptionRepository extends Mock
     implements SubscriptionRepository {}
@@ -41,8 +41,7 @@ void main() {
 
   test('watch use case delegates to repository stream', () async {
     final controller = StreamController<List<Subscription>>();
-    when(repository.watchSubscriptions)
-        .thenAnswer((_) => controller.stream);
+    when(repository.watchSubscriptions).thenAnswer((_) => controller.stream);
     final sample = Subscription(
       name: 'Netflix',
       amount: 9.99,
@@ -62,8 +61,7 @@ void main() {
   });
 
   test('add use case forwards subscription to repository', () async {
-    when(() => repository.addSubscription(any()))
-        .thenAnswer((_) async {});
+    when(() => repository.addSubscription(any())).thenAnswer((_) async {});
     final subscription = Subscription(
       name: 'Spotify',
       amount: 12,
@@ -76,8 +74,7 @@ void main() {
   });
 
   test('update use case forwards subscription to repository', () async {
-    when(() => repository.updateSubscription(any()))
-        .thenAnswer((_) async {});
+    when(() => repository.updateSubscription(any())).thenAnswer((_) async {});
     final subscription = Subscription(
       id: 1,
       name: 'Spotify',
@@ -91,8 +88,7 @@ void main() {
   });
 
   test('delete use case forwards id to repository', () async {
-    when(() => repository.deleteSubscription(any()))
-        .thenAnswer((_) async {});
+    when(() => repository.deleteSubscription(any())).thenAnswer((_) async {});
     await deleteUseCase(42);
     verify(() => repository.deleteSubscription(42)).called(1);
   });

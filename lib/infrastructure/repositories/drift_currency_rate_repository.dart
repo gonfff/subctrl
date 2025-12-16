@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/repositories/currency_rate_repository.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/repositories/currency_rate_repository.dart';
+import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftCurrencyRateRepository implements CurrencyRateRepository {
   DriftCurrencyRateRepository(this._database);
@@ -78,7 +78,9 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
 
   @override
   Stream<List<CurrencyRate>> watchRates(String baseCode) {
-    return _database.watchCurrencyRates(baseCode).map(
+    return _database
+        .watchCurrencyRates(baseCode)
+        .map(
           (rows) => rows
               .map(
                 (row) => CurrencyRate(

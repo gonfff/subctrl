@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/currencies/add_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/delete_custom_currency_use_case.dart';
-import 'package:subtrackr/application/currencies/set_currency_enabled_use_case.dart';
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/presentation/viewmodels/currency_settings_view_model.dart';
+import 'package:subctrl/application/currencies/add_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/delete_custom_currency_use_case.dart';
+import 'package:subctrl/application/currencies/set_currency_enabled_use_case.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/presentation/viewmodels/currency_settings_view_model.dart';
 
 class _MockWatchCurrenciesUseCase extends Mock
     implements WatchCurrenciesUseCase {}
@@ -36,17 +36,20 @@ void main() {
     deleteCustomCurrencyUseCase = _MockDeleteCustomCurrencyUseCase();
     controller = StreamController<List<Currency>>();
 
-    when(() => watchCurrenciesUseCase())
-        .thenAnswer((_) => controller.stream);
-    when(() => setCurrencyEnabledUseCase(
-          code: any(named: 'code'),
-          isEnabled: any(named: 'isEnabled'),
-        )).thenAnswer((_) async {});
-    when(() => addCustomCurrencyUseCase(
-          code: any(named: 'code'),
-          name: any(named: 'name'),
-          symbol: any(named: 'symbol'),
-        )).thenAnswer(
+    when(() => watchCurrenciesUseCase()).thenAnswer((_) => controller.stream);
+    when(
+      () => setCurrencyEnabledUseCase(
+        code: any(named: 'code'),
+        isEnabled: any(named: 'isEnabled'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => addCustomCurrencyUseCase(
+        code: any(named: 'code'),
+        name: any(named: 'name'),
+        symbol: any(named: 'symbol'),
+      ),
+    ).thenAnswer(
       (_) async => const Currency(
         code: 'BTC',
         name: 'Bitcoin',
@@ -55,8 +58,7 @@ void main() {
         isCustom: true,
       ),
     );
-    when(() => deleteCustomCurrencyUseCase(any()))
-        .thenAnswer((_) async {});
+    when(() => deleteCustomCurrencyUseCase(any())).thenAnswer((_) async {});
 
     viewModel = CurrencySettingsViewModel(
       watchCurrenciesUseCase: watchCurrenciesUseCase,

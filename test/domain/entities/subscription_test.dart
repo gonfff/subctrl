@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
 
 void main() {
   test('copyWith replaces supplied values and preserves others', () {
@@ -70,8 +70,7 @@ void main() {
   test('BillingCycleX nextPaymentDate advances past reference', () {
     final purchase = DateTime(2024, 1, 1);
     final reference = DateTime(2024, 3, 1);
-    final nextDate =
-        BillingCycle.monthly.nextPaymentDate(purchase, reference);
+    final nextDate = BillingCycle.monthly.nextPaymentDate(purchase, reference);
     expect(nextDate.isAfter(reference), isTrue);
   });
 

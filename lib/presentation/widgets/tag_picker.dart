@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
 Future<int?> showTagPicker({
   required BuildContext context,
@@ -17,13 +17,16 @@ Future<int?> showTagPicker({
     builder: (context) {
       return StatefulBuilder(
         builder: (context, setModalState) {
-          final backgroundColor =
-              CupertinoColors.systemBackground.resolveFrom(context);
-          final filtered = tags.where((tag) {
-            if (query.isEmpty) return true;
-            final normalized = query.toLowerCase();
-            return tag.name.toLowerCase().contains(normalized);
-          }).toList(growable: false);
+          final backgroundColor = CupertinoColors.systemBackground.resolveFrom(
+            context,
+          );
+          final filtered = tags
+              .where((tag) {
+                if (query.isEmpty) return true;
+                final normalized = query.toLowerCase();
+                return tag.name.toLowerCase().contains(normalized);
+              })
+              .toList(growable: false);
 
           return Container(
             height: MediaQuery.of(context).size.height * 0.7,
@@ -39,9 +42,9 @@ Future<int?> showTagPicker({
                         Expanded(
                           child: Text(
                             localizations.tagPickerTitle,
-                            style: CupertinoTheme.of(context)
-                                .textTheme
-                                .navTitleTextStyle,
+                            style: CupertinoTheme.of(
+                              context,
+                            ).textTheme.navTitleTextStyle,
                           ),
                         ),
                         CupertinoButton(
@@ -82,8 +85,9 @@ Future<int?> showTagPicker({
                         ? Center(
                             child: Text(
                               localizations.tagSearchEmpty,
-                              style:
-                                  CupertinoTheme.of(context).textTheme.textStyle,
+                              style: CupertinoTheme.of(
+                                context,
+                              ).textTheme.textStyle,
                             ),
                           )
                         : ListView.separated(
@@ -98,7 +102,8 @@ Future<int?> showTagPicker({
                                   tag.id == selectedTagId;
                               return CupertinoButton(
                                 padding: EdgeInsets.zero,
-                                onPressed: () => Navigator.of(context).pop(tag.id),
+                                onPressed: () =>
+                                    Navigator.of(context).pop(tag.id),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,
@@ -107,7 +112,7 @@ Future<int?> showTagPicker({
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? CupertinoColors.systemGrey5
-                                            .resolveFrom(context)
+                                              .resolveFrom(context)
                                         : backgroundColor,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -125,9 +130,9 @@ Future<int?> showTagPicker({
                                       Expanded(
                                         child: Text(
                                           tag.name,
-                                          style: CupertinoTheme.of(context)
-                                              .textTheme
-                                              .textStyle,
+                                          style: CupertinoTheme.of(
+                                            context,
+                                          ).textTheme.textStyle,
                                         ),
                                       ),
                                       if (isSelected)

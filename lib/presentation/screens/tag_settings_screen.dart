@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/domain/exceptions/duplicate_tag_name_exception.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/theme/tag_colors.dart';
-import 'package:subtrackr/presentation/viewmodels/tag_settings_view_model.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/domain/exceptions/duplicate_tag_name_exception.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/theme/tag_colors.dart';
+import 'package:subctrl/presentation/viewmodels/tag_settings_view_model.dart';
 
 class TagSettingsScreen extends StatefulWidget {
   const TagSettingsScreen({
@@ -51,10 +51,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
     final data = await _promptTagForm();
     if (data == null) return;
     try {
-      await _viewModel.createTag(
-        name: data.name,
-        colorHex: data.colorHex,
-      );
+      await _viewModel.createTag(name: data.name, colorHex: data.colorHex);
     } on DuplicateTagNameException {
       if (!mounted) return;
       await _showDuplicateNameError();
@@ -134,10 +131,9 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         localizations.settingsTagColorLabel,
-                        style: CupertinoTheme.of(context)
-                            .textTheme
-                            .textStyle
-                            .copyWith(fontSize: 13),
+                        style: CupertinoTheme.of(
+                          context,
+                        ).textTheme.textStyle.copyWith(fontSize: 13),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -146,7 +142,8 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
                       runSpacing: 8,
                       children: tagColorOptions.map((option) {
                         final isSelected =
-                            option.hex.toUpperCase() == selectedColor.toUpperCase();
+                            option.hex.toUpperCase() ==
+                            selectedColor.toUpperCase();
                         return GestureDetector(
                           onTap: () =>
                               setModalState(() => selectedColor = option.hex),
@@ -209,10 +206,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
           listContent = const Center(child: CupertinoActivityIndicator());
         } else if (filtered.isEmpty) {
           listContent = Center(
-            child: Text(
-              localizations.settingsTagEmpty,
-              style: textTheme,
-            ),
+            child: Text(localizations.settingsTagEmpty, style: textTheme),
           );
         } else {
           listContent = ListView(

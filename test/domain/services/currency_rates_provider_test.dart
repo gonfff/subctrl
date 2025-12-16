@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:subtrackr/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/domain/services/currency_rates_provider.dart';
 
 void main() {
   test('CurrencyRatesFetchException exposes readable message', () {

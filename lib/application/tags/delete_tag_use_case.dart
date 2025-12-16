@@ -1,4 +1,4 @@
-import 'package:subtrackr/domain/repositories/tag_repository.dart';
+import 'package:subctrl/domain/repositories/tag_repository.dart';
 
 class DeleteTagUseCase {
   DeleteTagUseCase(this._repository);

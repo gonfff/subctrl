@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/repositories/subscription_repository.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/repositories/subscription_repository.dart';
+import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftSubscriptionRepository implements SubscriptionRepository {
   DriftSubscriptionRepository(this._database);
@@ -39,28 +39,28 @@ class DriftSubscriptionRepository implements SubscriptionRepository {
     if (id == null) {
       throw ArgumentError('Subscription id is required for update');
     }
-    return (_database.update(_database.subscriptionsTable)
-          ..where((tbl) => tbl.id.equals(id)))
-        .write(
-          SubscriptionsTableCompanion(
-            name: Value(subscription.name),
-            amount: Value(subscription.amount),
-            currency: Value(subscription.currency),
-            cycle: Value(subscription.cycle.index),
-            purchaseDate: Value(subscription.purchaseDate),
-            nextPaymentDate: Value(subscription.nextPaymentDate),
-            tagId: Value(subscription.tagId),
-            isActive: Value(subscription.isActive),
-            statusChangedAt: Value(subscription.statusChangedAt),
-          ),
-        );
+    return (_database.update(
+      _database.subscriptionsTable,
+    )..where((tbl) => tbl.id.equals(id))).write(
+      SubscriptionsTableCompanion(
+        name: Value(subscription.name),
+        amount: Value(subscription.amount),
+        currency: Value(subscription.currency),
+        cycle: Value(subscription.cycle.index),
+        purchaseDate: Value(subscription.purchaseDate),
+        nextPaymentDate: Value(subscription.nextPaymentDate),
+        tagId: Value(subscription.tagId),
+        isActive: Value(subscription.isActive),
+        statusChangedAt: Value(subscription.statusChangedAt),
+      ),
+    );
   }
 
   @override
   Future<void> deleteSubscription(int id) {
-    return (_database.delete(_database.subscriptionsTable)
-          ..where((tbl) => tbl.id.equals(id)))
-        .go();
+    return (_database.delete(
+      _database.subscriptionsTable,
+    )..where((tbl) => tbl.id.equals(id))).go();
   }
 
   Subscription _mapToDomain(SubscriptionsTableData data) {

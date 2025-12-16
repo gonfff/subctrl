@@ -1,5 +1,5 @@
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
 String billingCycleLongLabel(
   BillingCycle cycle,

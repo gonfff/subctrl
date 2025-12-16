@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
 class EmptySubscriptionsState extends StatelessWidget {
   const EmptySubscriptionsState({super.key});

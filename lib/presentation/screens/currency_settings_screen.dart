@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/viewmodels/currency_settings_view_model.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/presentation/formatters/currency_formatter.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/viewmodels/currency_settings_view_model.dart';
 
 enum CurrencyListCategory { builtIn, custom }
 
@@ -37,10 +37,8 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     super.initState();
     _viewModel = CurrencySettingsViewModel(
       watchCurrenciesUseCase: widget.dependencies.watchCurrenciesUseCase,
-      setCurrencyEnabledUseCase:
-          widget.dependencies.setCurrencyEnabledUseCase,
-      addCustomCurrencyUseCase:
-          widget.dependencies.addCustomCurrencyUseCase,
+      setCurrencyEnabledUseCase: widget.dependencies.setCurrencyEnabledUseCase,
+      addCustomCurrencyUseCase: widget.dependencies.addCustomCurrencyUseCase,
       deleteCustomCurrencyUseCase:
           widget.dependencies.deleteCustomCurrencyUseCase,
     );
@@ -54,10 +52,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
   }
 
   Future<void> _toggleCurrency(Currency currency, bool value) {
-    return _viewModel.toggleCurrency(
-      code: currency.code,
-      isEnabled: value,
-    );
+    return _viewModel.toggleCurrency(code: currency.code, isEnabled: value);
   }
 
   Future<void> _deleteCurrency(Currency currency) async {
@@ -122,14 +117,16 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     if (normalized.isEmpty) {
       return currencies;
     }
-    return currencies.where((currency) {
-      final code = currency.code.toLowerCase();
-      final name = currency.name.toLowerCase();
-      final symbol = currency.symbol?.toLowerCase() ?? '';
-      return code.contains(normalized) ||
-          name.contains(normalized) ||
-          symbol.contains(normalized);
-    }).toList(growable: false);
+    return currencies
+        .where((currency) {
+          final code = currency.code.toLowerCase();
+          final name = currency.name.toLowerCase();
+          final symbol = currency.symbol?.toLowerCase() ?? '';
+          return code.contains(normalized) ||
+              name.contains(normalized) ||
+              symbol.contains(normalized);
+        })
+        .toList(growable: false);
   }
 
   Future<_NewCurrencyData?> _promptNewCurrency() async {
@@ -242,10 +239,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
           listContent = const Center(child: CupertinoActivityIndicator());
         } else if (filtered.isEmpty) {
           listContent = Center(
-            child: Text(
-              localizations.currencySearchEmpty,
-              style: theme,
-            ),
+            child: Text(localizations.currencySearchEmpty, style: theme),
           );
         } else {
           listContent = ListView(
@@ -304,11 +298,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
             ),
             middle: Text(localizations.settingsCurrenciesTitle),
           ),
-          child: SafeArea(
-            child: Column(
-              children: bodyChildren,
-            ),
-          ),
+          child: SafeArea(child: Column(children: bodyChildren)),
         );
       },
     );
@@ -355,10 +345,7 @@ class _CurrencyRow extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               currency.name,
-              style: baseStyle.copyWith(
-                fontSize: 13,
-                color: secondaryColor,
-              ),
+              style: baseStyle.copyWith(fontSize: 13, color: secondaryColor),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

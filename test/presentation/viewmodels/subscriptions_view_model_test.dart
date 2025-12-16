@@ -2,22 +2,22 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:subtrackr/application/currencies/get_currencies_use_case.dart';
-import 'package:subtrackr/application/currencies/watch_currencies_use_case.dart';
-import 'package:subtrackr/application/currency_rates/fetch_subscription_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/get_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/save_currency_rates_use_case.dart';
-import 'package:subtrackr/application/currency_rates/watch_currency_rates_use_case.dart';
-import 'package:subtrackr/application/subscriptions/add_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/delete_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/update_subscription_use_case.dart';
-import 'package:subtrackr/application/subscriptions/watch_subscriptions_use_case.dart';
-import 'package:subtrackr/application/tags/watch_tags_use_case.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/domain/entities/subscription.dart';
-import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/presentation/viewmodels/subscriptions_view_model.dart';
+import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
+import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
+import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
+import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
+import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 
 class _MockWatchSubscriptionsUseCase extends Mock
     implements WatchSubscriptionsUseCase {}
@@ -99,30 +99,35 @@ void main() {
     currenciesController = StreamController<List<Currency>>.broadcast();
     ratesController = StreamController<List<CurrencyRate>>.broadcast();
 
-    when(() => watchSubscriptionsUseCase())
-        .thenAnswer((_) => subscriptionsController.stream);
+    when(
+      () => watchSubscriptionsUseCase(),
+    ).thenAnswer((_) => subscriptionsController.stream);
     when(() => watchTagsUseCase()).thenAnswer((_) => tagsController.stream);
-    when(() => watchCurrenciesUseCase())
-        .thenAnswer((_) => currenciesController.stream);
-    when(() => watchCurrencyRatesUseCase(any()))
-        .thenAnswer((_) => ratesController.stream);
+    when(
+      () => watchCurrenciesUseCase(),
+    ).thenAnswer((_) => currenciesController.stream);
+    when(
+      () => watchCurrencyRatesUseCase(any()),
+    ).thenAnswer((_) => ratesController.stream);
     when(() => getCurrenciesUseCase()).thenAnswer((_) async => const []);
-    when(() => getCurrencyRatesUseCase(any()))
-        .thenAnswer((_) async => const []);
-    when(() => saveCurrencyRatesUseCase(
-          baseCurrencyCode: any(named: 'baseCurrencyCode'),
-          rates: any(named: 'rates'),
-        )).thenAnswer((_) async {});
-    when(() => fetchSubscriptionRatesUseCase(
-          baseCurrencyCode: any(named: 'baseCurrencyCode'),
-          subscriptions: any(named: 'subscriptions'),
-        )).thenAnswer((_) async => const []);
-    when(() => addSubscriptionUseCase(any()))
-        .thenAnswer((_) async {});
-    when(() => updateSubscriptionUseCase(any()))
-        .thenAnswer((_) async {});
-    when(() => deleteSubscriptionUseCase(any()))
-        .thenAnswer((_) async {});
+    when(
+      () => getCurrencyRatesUseCase(any()),
+    ).thenAnswer((_) async => const []);
+    when(
+      () => saveCurrencyRatesUseCase(
+        baseCurrencyCode: any(named: 'baseCurrencyCode'),
+        rates: any(named: 'rates'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => fetchSubscriptionRatesUseCase(
+        baseCurrencyCode: any(named: 'baseCurrencyCode'),
+        subscriptions: any(named: 'subscriptions'),
+      ),
+    ).thenAnswer((_) async => const []);
+    when(() => addSubscriptionUseCase(any())).thenAnswer((_) async {});
+    when(() => updateSubscriptionUseCase(any())).thenAnswer((_) async {});
+    when(() => deleteSubscriptionUseCase(any())).thenAnswer((_) async {});
 
     viewModel = SubscriptionsViewModel(
       watchSubscriptionsUseCase: watchSubscriptionsUseCase,
@@ -209,45 +214,48 @@ void main() {
     verify(() => watchCurrencyRatesUseCase('EUR')).called(1);
   });
 
-  test('updateAutoDownloadEnabled triggers rate refresh when enabling', () async {
-    final subscription = Subscription(
-      name: 'Prime',
-      amount: 15,
-      currency: 'eur',
-      cycle: BillingCycle.monthly,
-      purchaseDate: DateTime(2024, 1, 1),
-    );
-    subscriptionsController.add([subscription]);
-    when(() => getCurrencyRatesUseCase(any())).thenAnswer((_) async => const []);
-    final newRate = CurrencyRate(
-      baseCode: 'USD',
-      quoteCode: 'EUR',
-      rate: 1.1,
-      fetchedAt: DateTime.now(),
-    );
-    when(
-      () => fetchSubscriptionRatesUseCase(
-        baseCurrencyCode: any(named: 'baseCurrencyCode'),
-        subscriptions: any(named: 'subscriptions'),
-      ),
-    ).thenAnswer((_) async => [newRate]);
+  test(
+    'updateAutoDownloadEnabled triggers rate refresh when enabling',
+    () async {
+      final subscription = Subscription(
+        name: 'Prime',
+        amount: 15,
+        currency: 'eur',
+        cycle: BillingCycle.monthly,
+        purchaseDate: DateTime(2024, 1, 1),
+      );
+      subscriptionsController.add([subscription]);
+      when(
+        () => getCurrencyRatesUseCase(any()),
+      ).thenAnswer((_) async => const []);
+      final newRate = CurrencyRate(
+        baseCode: 'USD',
+        quoteCode: 'EUR',
+        rate: 1.1,
+        fetchedAt: DateTime.now(),
+      );
+      when(
+        () => fetchSubscriptionRatesUseCase(
+          baseCurrencyCode: any(named: 'baseCurrencyCode'),
+          subscriptions: any(named: 'subscriptions'),
+        ),
+      ).thenAnswer((_) async => [newRate]);
 
-    viewModel.updateAutoDownloadEnabled(true);
-    await Future<void>.delayed(Duration.zero);
+      viewModel.updateAutoDownloadEnabled(true);
+      await Future<void>.delayed(Duration.zero);
 
-    verify(
-      () => fetchSubscriptionRatesUseCase(
-        baseCurrencyCode: 'USD',
-        subscriptions: any(named: 'subscriptions'),
-      ),
-    ).called(1);
-    verify(
-      () => saveCurrencyRatesUseCase(
-        baseCurrencyCode: 'USD',
-        rates: [newRate],
-      ),
-    ).called(1);
-  });
+      verify(
+        () => fetchSubscriptionRatesUseCase(
+          baseCurrencyCode: 'USD',
+          subscriptions: any(named: 'subscriptions'),
+        ),
+      ).called(1);
+      verify(
+        () =>
+            saveCurrencyRatesUseCase(baseCurrencyCode: 'USD', rates: [newRate]),
+      ).called(1);
+    },
+  );
 
   test('exposed mutation methods delegate to respective use cases', () async {
     final subscription = Subscription(
@@ -298,7 +306,9 @@ void main() {
     ratesController.add(const []);
     await Future<void>.delayed(Duration.zero);
     expect(viewModel.subscriptions, hasLength(1));
-    when(() => getCurrencyRatesUseCase(any())).thenAnswer((_) async => const []);
+    when(
+      () => getCurrencyRatesUseCase(any()),
+    ).thenAnswer((_) async => const []);
     final fetched = CurrencyRate(
       baseCode: 'USD',
       quoteCode: 'EUR',
@@ -323,10 +333,7 @@ void main() {
       ),
     ).called(1);
     verify(
-      () => saveCurrencyRatesUseCase(
-        baseCurrencyCode: 'USD',
-        rates: [fetched],
-      ),
+      () => saveCurrencyRatesUseCase(baseCurrencyCode: 'USD', rates: [fetched]),
     ).called(1);
   });
 }

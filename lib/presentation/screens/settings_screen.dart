@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/cupertino.dart';
-import 'package:subtrackr/application/app_dependencies.dart';
-import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/presentation/l10n/app_localizations.dart';
-import 'package:subtrackr/presentation/screens/about_screen.dart';
-import 'package:subtrackr/presentation/screens/currency_rates_screen.dart';
-import 'package:subtrackr/presentation/screens/currency_settings_screen.dart';
-import 'package:subtrackr/presentation/screens/support_screen.dart';
-import 'package:subtrackr/presentation/screens/tag_settings_screen.dart';
-import 'package:subtrackr/presentation/theme/app_theme.dart';
-import 'package:subtrackr/presentation/theme/theme_preference.dart';
-import 'package:subtrackr/presentation/types/settings_callbacks.dart';
-import 'package:subtrackr/presentation/widgets/currency_picker.dart';
-import 'package:subtrackr/presentation/viewmodels/settings_view_model.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/screens/about_screen.dart';
+import 'package:subctrl/presentation/screens/currency_rates_screen.dart';
+import 'package:subctrl/presentation/screens/currency_settings_screen.dart';
+import 'package:subctrl/presentation/screens/support_screen.dart';
+import 'package:subctrl/presentation/screens/tag_settings_screen.dart';
+import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/presentation/widgets/currency_picker.dart';
+import 'package:subctrl/presentation/viewmodels/settings_view_model.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -285,8 +285,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _openCurrencyRates() async {
-    final baseCode =
-        _resolvedBaseCurrency()?.code ?? _currentBaseCurrencyCode;
+    final baseCode = _resolvedBaseCurrency()?.code ?? _currentBaseCurrencyCode;
     if (baseCode == null) return;
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
@@ -325,7 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final baseCurrencyLabel = _viewModel.isLoading
             ? localizations.settingsLoading
             : resolvedCode?.toUpperCase() ??
-                localizations.settingsBaseCurrencyUnset;
+                  localizations.settingsBaseCurrencyUnset;
         final canOpenRates =
             !_viewModel.isLoading &&
             baseCurrencyLabel != localizations.settingsBaseCurrencyUnset;
