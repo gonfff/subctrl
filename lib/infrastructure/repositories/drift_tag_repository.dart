@@ -1,24 +1,29 @@
 import 'package:drift/drift.dart';
 
 import 'package:subtrackr/domain/entities/tag.dart';
+import 'package:subtrackr/domain/exceptions/duplicate_tag_name_exception.dart';
+import 'package:subtrackr/domain/repositories/tag_repository.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 
-class TagRepository {
-  TagRepository(this._database);
+class DriftTagRepository implements TagRepository {
+  DriftTagRepository(this._database);
 
   final AppDatabase _database;
 
+  @override
   Future<List<Tag>> getTags() async {
     final rows = await _database.getTags();
     return rows.map(_mapRow).toList(growable: false);
   }
 
+  @override
   Stream<List<Tag>> watchTags() {
     return _database.watchTags().map(
           (rows) => rows.map(_mapRow).toList(growable: false),
         );
   }
 
+  @override
   Future<Tag> createTag({
     required String name,
     required String colorHex,
@@ -35,6 +40,7 @@ class TagRepository {
     return Tag(id: id, name: trimmedName, colorHex: normalizedColor);
   }
 
+  @override
   Future<void> updateTag(Tag tag) async {
     await _ensureUniqueName(tag.name, excludingId: tag.id);
     await _database.updateTag(
@@ -46,6 +52,7 @@ class TagRepository {
     );
   }
 
+  @override
   Future<void> deleteTag(int id) {
     return _database.deleteTag(id);
   }
@@ -77,13 +84,4 @@ class TagRepository {
     if (excludingId != null && existingId == excludingId) return;
     throw DuplicateTagNameException(name.trim());
   }
-}
-
-class DuplicateTagNameException implements Exception {
-  DuplicateTagNameException(this.name);
-
-  final String name;
-
-  @override
-  String toString() => 'DuplicateTagNameException: $name';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+import 'package:subtrackr/application/app_dependencies.dart';
 import 'package:subtrackr/presentation/screens/settings_screen.dart';
 import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/theme_preference.dart';
@@ -8,6 +9,7 @@ import 'package:subtrackr/presentation/types/settings_callbacks.dart';
 class SettingsSheet extends StatelessWidget {
   const SettingsSheet({
     super.key,
+    required this.dependencies,
     required this.themePreference,
     required this.onThemePreferenceChanged,
     required this.selectedLocale,
@@ -18,6 +20,7 @@ class SettingsSheet extends StatelessWidget {
     required this.onCurrencyRatesAutoDownloadChanged,
   });
 
+  final AppDependencies dependencies;
   final ThemePreference themePreference;
   final ValueChanged<ThemePreference> onThemePreferenceChanged;
   final Locale? selectedLocale;
@@ -68,6 +71,7 @@ class SettingsSheet extends StatelessWidget {
                           onGenerateInitialRoutes: (_, __) => [
                             CupertinoPageRoute<void>(
                               builder: (innerContext) => SettingsScreen(
+                                dependencies: dependencies,
                                 themePreference: themePreference,
                                 onThemePreferenceChanged:
                                     onThemePreferenceChanged,

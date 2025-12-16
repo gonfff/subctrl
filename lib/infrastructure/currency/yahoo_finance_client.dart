@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 import 'package:subtrackr/domain/entities/currency_rate.dart';
+import 'package:subtrackr/domain/services/currency_rates_provider.dart';
 
 class YahooFinanceCurrencyClient {
   YahooFinanceCurrencyClient({http.Client? httpClient})
@@ -226,13 +227,4 @@ class YahooFinanceCurrencyClient {
       stackTrace: stackTrace,
     );
   }
-}
-
-class CurrencyRatesFetchException implements Exception {
-  CurrencyRatesFetchException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => 'CurrencyRatesFetchException: $message';
 }

@@ -3,9 +3,9 @@ import 'package:mocktail/mocktail.dart';
 import 'package:subtrackr/domain/entities/currency.dart';
 import 'package:subtrackr/domain/entities/currency_rate.dart';
 import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subtrackr/domain/repositories/currency_repository.dart';
 import 'package:subtrackr/infrastructure/currency/subscription_currency_rates_client.dart';
 import 'package:subtrackr/infrastructure/currency/yahoo_finance_client.dart';
-import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 
 class _MockYahooFinanceCurrencyClient extends Mock
     implements YahooFinanceCurrencyClient {}

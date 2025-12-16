@@ -1,36 +1,43 @@
 import 'package:drift/drift.dart';
 
 import 'package:subtrackr/domain/entities/currency.dart';
+import 'package:subtrackr/domain/repositories/currency_repository.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 
-class CurrencyRepository {
-  CurrencyRepository(this._database);
+class DriftCurrencyRepository implements CurrencyRepository {
+  DriftCurrencyRepository(this._database);
 
   final AppDatabase _database;
 
+  @override
   Future<void> seedIfEmpty() => _database.ensureCurrenciesSeeded();
 
+  @override
   Future<List<Currency>> getCurrencies({bool onlyEnabled = false}) async {
     final rows = await _database.getCurrencies(onlyEnabled: onlyEnabled);
     return rows.map(_mapToDomain).toList(growable: false);
   }
 
+  @override
   Stream<List<Currency>> watchCurrencies({bool onlyEnabled = false}) {
     return _database
         .watchCurrencies(onlyEnabled: onlyEnabled)
         .map((rows) => rows.map(_mapToDomain).toList(growable: false));
   }
 
+  @override
   Future<Currency?> findByCode(String code) async {
     final row = await _database.findCurrency(code.toUpperCase());
     if (row == null) return null;
     return _mapToDomain(row);
   }
 
+  @override
   Future<void> setCurrencyEnabled(String code, bool isEnabled) {
     return _database.setCurrencyEnabled(code.toUpperCase(), isEnabled);
   }
 
+  @override
   Future<Currency> addCustomCurrency({
     required String code,
     required String name,
@@ -57,6 +64,7 @@ class CurrencyRepository {
     return _mapToDomain(row);
   }
 
+  @override
   Future<void> deleteCustomCurrency(String code) async {
     final normalized = code.toUpperCase();
     final existing = await _database.findCurrency(normalized);

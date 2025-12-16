@@ -1,7 +1,8 @@
+import 'package:subtrackr/domain/repositories/settings_repository.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 
-class SettingsRepository {
-  SettingsRepository(this._database);
+class DriftSettingsRepository implements SettingsRepository {
+  DriftSettingsRepository(this._database);
 
   final AppDatabase _database;
 
@@ -11,30 +12,37 @@ class SettingsRepository {
   static const _currencyRatesAutoDownloadKey =
       'currency_rates_auto_download_enabled';
 
+  @override
   Future<String?> getBaseCurrencyCode() {
     return _database.getSetting(_baseCurrencyKey);
   }
 
+  @override
   Future<void> setBaseCurrencyCode(String code) {
     return _database.saveSetting(_baseCurrencyKey, code.toUpperCase());
   }
 
+  @override
   Future<String?> getThemePreference() {
     return _database.getSetting(_themePreferenceKey);
   }
 
+  @override
   Future<void> setThemePreference(String preference) {
     return _database.saveSetting(_themePreferenceKey, preference);
   }
 
+  @override
   Future<String?> getLocaleCode() {
     return _database.getSetting(_localeKey);
   }
 
+  @override
   Future<void> setLocaleCode(String? code) {
     return _database.saveSetting(_localeKey, code);
   }
 
+  @override
   Future<bool> getCurrencyRatesAutoDownloadEnabled() async {
     final stored = await _database.getSetting(_currencyRatesAutoDownloadKey);
     if (stored == null) {
@@ -43,6 +51,7 @@ class SettingsRepository {
     return stored == 'true';
   }
 
+  @override
   Future<void> setCurrencyRatesAutoDownloadEnabled(bool value) {
     return _database.saveSetting(
       _currencyRatesAutoDownloadKey,

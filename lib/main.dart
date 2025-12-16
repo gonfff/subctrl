@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
-import 'package:subtrackr/infrastructure/repositories/settings_repository.dart';
+import 'package:subtrackr/application/app_dependencies.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
 import 'package:subtrackr/presentation/screens/analytics_screen.dart';
 import 'package:subtrackr/presentation/screens/subscriptions_screen.dart';
@@ -26,12 +25,12 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
   String? _baseCurrencyCode =
       'USD'; // Default value to avoid null during initialization
   bool _isCurrencyRatesAutoDownloadEnabled = true;
-  late final SettingsRepository _settingsRepository;
+  late final AppDependencies _dependencies;
 
   @override
   void initState() {
     super.initState();
-    _settingsRepository = SettingsRepository(AppDatabase());
+    _dependencies = AppDependencies();
     unawaited(_loadInitialSettings());
   }
 
@@ -39,22 +38,23 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
     setState(() {
       _themePreference = preference;
     });
-    unawaited(_settingsRepository.setThemePreference(preference.name));
+    unawaited(_dependencies.setThemePreferenceUseCase(preference.name));
   }
 
   void _handleLocaleChanged(Locale? locale) {
     setState(() {
       _locale = locale;
     });
-    unawaited(_settingsRepository.setLocaleCode(locale?.languageCode));
+    unawaited(_dependencies.setLocaleCodeUseCase(locale?.languageCode));
   }
 
   Future<void> _loadInitialSettings() async {
-    final storedTheme = await _settingsRepository.getThemePreference();
-    final storedLocale = await _settingsRepository.getLocaleCode();
-    var storedBaseCurrency = await _settingsRepository.getBaseCurrencyCode();
-    final shouldDownloadRates = await _settingsRepository
-        .getCurrencyRatesAutoDownloadEnabled();
+    final storedTheme = await _dependencies.getThemePreferenceUseCase();
+    final storedLocale = await _dependencies.getLocaleCodeUseCase();
+    var storedBaseCurrency =
+        await _dependencies.getBaseCurrencyCodeUseCase();
+    final shouldDownloadRates =
+        await _dependencies.getCurrencyRatesAutoDownloadUseCase();
 
     final themePreference = ThemePreference.values.firstWhere(
       (value) => value.name == storedTheme,
@@ -78,7 +78,7 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
     });
 
     if (shouldPersistBaseCurrency) {
-      await _settingsRepository.setBaseCurrencyCode(storedBaseCurrency);
+      await _dependencies.setBaseCurrencyCodeUseCase(storedBaseCurrency);
     }
   }
 
@@ -97,14 +97,22 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
     setState(() {
       _baseCurrencyCode = code;
     });
-    await _settingsRepository.setBaseCurrencyCode(code);
+    await _dependencies.setBaseCurrencyCodeUseCase(code);
   }
 
   void _handleCurrencyRatesAutoDownloadChanged(bool value) {
     setState(() {
       _isCurrencyRatesAutoDownloadEnabled = value;
     });
-    unawaited(_settingsRepository.setCurrencyRatesAutoDownloadEnabled(value));
+    unawaited(
+      _dependencies.setCurrencyRatesAutoDownloadUseCase(value),
+    );
+  }
+
+  @override
+  void dispose() {
+    _dependencies.dispose();
+    super.dispose();
   }
 
   @override
@@ -125,6 +133,7 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: HomeTabs(
+        dependencies: _dependencies,
         themePreference: _themePreference,
         onThemePreferenceChanged: _handleThemePreferenceChanged,
         selectedLocale: _locale,
@@ -142,6 +151,7 @@ class _SubtrackrAppState extends State<SubtrackrApp> {
 class HomeTabs extends StatelessWidget {
   const HomeTabs({
     super.key,
+    required this.dependencies,
     required this.themePreference,
     required this.onThemePreferenceChanged,
     required this.selectedLocale,
@@ -152,6 +162,7 @@ class HomeTabs extends StatelessWidget {
     required this.onCurrencyRatesAutoDownloadChanged,
   });
 
+  final AppDependencies dependencies;
   final ThemePreference themePreference;
   final ValueChanged<ThemePreference> onThemePreferenceChanged;
   final Locale? selectedLocale;
@@ -190,6 +201,7 @@ class HomeTabs extends StatelessWidget {
             switch (index) {
               case 0:
                 return SubscriptionsScreen(
+                  dependencies: dependencies,
                   themePreference: themePreference,
                   onThemePreferenceChanged: onThemePreferenceChanged,
                   selectedLocale: selectedLocale,

@@ -2,19 +2,23 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:subtrackr/application/app_dependencies.dart';
 import 'package:subtrackr/domain/entities/currency.dart';
 import 'package:subtrackr/domain/entities/currency_rate.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
-import 'package:subtrackr/infrastructure/repositories/currency_rate_repository.dart';
-import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
 import 'package:subtrackr/presentation/theme/app_theme.dart';
+import 'package:subtrackr/presentation/viewmodels/currency_rates_view_model.dart';
 
 enum CurrencyRatesSort { currency, date }
 
 class CurrencyRatesScreen extends StatefulWidget {
-  const CurrencyRatesScreen({super.key, required this.baseCurrencyCode});
+  const CurrencyRatesScreen({
+    super.key,
+    required this.dependencies,
+    required this.baseCurrencyCode,
+  });
 
+  final AppDependencies dependencies;
   final String baseCurrencyCode;
 
   @override
@@ -22,50 +26,28 @@ class CurrencyRatesScreen extends StatefulWidget {
 }
 
 class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
-  late final CurrencyRateRepository _repository;
-  late final CurrencyRepository _currencyRepository;
-  StreamSubscription<List<CurrencyRate>>? _subscription;
-  List<CurrencyRate> _rates = const [];
-  bool _isLoading = true;
+  late final CurrencyRatesViewModel _viewModel;
   CurrencyRatesSort _sort = CurrencyRatesSort.currency;
-  List<Currency> _currencies = const [];
-  bool _isLoadingCurrencies = true;
 
   @override
   void initState() {
     super.initState();
-    _repository = CurrencyRateRepository(AppDatabase());
-    _currencyRepository = CurrencyRepository(AppDatabase());
-    _listenRates();
-    unawaited(_loadCurrencies());
+    _viewModel = CurrencyRatesViewModel(
+      watchCurrencyRatesUseCase:
+          widget.dependencies.watchCurrencyRatesUseCase,
+      saveCurrencyRatesUseCase:
+          widget.dependencies.saveCurrencyRatesUseCase,
+      deleteCurrencyRateUseCase:
+          widget.dependencies.deleteCurrencyRateUseCase,
+      getCurrenciesUseCase: widget.dependencies.getCurrenciesUseCase,
+      baseCurrencyCode: widget.baseCurrencyCode,
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _viewModel.dispose();
     super.dispose();
-  }
-
-  void _listenRates() {
-    _subscription?.cancel();
-    _subscription = _repository.watchRates(widget.baseCurrencyCode).listen((
-      rates,
-    ) {
-      if (!mounted) return;
-      setState(() {
-        _rates = rates;
-        _isLoading = false;
-      });
-    });
-  }
-
-  Future<void> _loadCurrencies() async {
-    final currencies = await _currencyRepository.getCurrencies();
-    if (!mounted) return;
-    setState(() {
-      _currencies = currencies;
-      _isLoadingCurrencies = false;
-    });
   }
 
   void _handleSortChanged(CurrencyRatesSort? value) {
@@ -76,7 +58,7 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
   }
 
   List<CurrencyRate> _sortedRates() {
-    final rates = List<CurrencyRate>.from(_rates);
+    final rates = List<CurrencyRate>.from(_viewModel.rates);
     switch (_sort) {
       case CurrencyRatesSort.currency:
         rates.sort((a, b) => a.quoteCode.compareTo(b.quoteCode));
@@ -92,58 +74,64 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final header = _buildSortControl(localizations);
-    final quoteCurrencies = _availableQuoteCurrencies();
-    final canAddManualRate =
-        !_isLoadingCurrencies && quoteCurrencies.isNotEmpty;
-    final sortedRates = _sortedRates();
-    final body = _isLoading
-        ? const Center(child: CupertinoActivityIndicator())
-        : _rates.isEmpty
-        ? Center(
-            child: Text(
-              localizations.settingsCurrencyRatesEmpty,
-              style: CupertinoTheme.of(context).textTheme.textStyle,
-            ),
-          )
-        : ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            itemBuilder: (context, index) {
-              final rate = sortedRates[index];
-              return _CurrencyRateRow(
-                rate: rate,
-                baseCurrencyCode: widget.baseCurrencyCode,
-                onDelete: () => _deleteRate(rate),
-              );
-            },
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemCount: sortedRates.length,
-          );
 
-    return CupertinoPageScaffold(
-      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(localizations.settingsCurrencyRatesTitle),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            header,
-            Expanded(child: body),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: CupertinoButton.filled(
-                  onPressed: canAddManualRate
-                      ? () => _addManualRate(quoteCurrencies)
-                      : null,
-                  child: Text(localizations.settingsCurrencyRatesAdd),
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        final quoteCurrencies = _availableQuoteCurrencies();
+        final canAddManualRate =
+            !_viewModel.isLoadingCurrencies && quoteCurrencies.isNotEmpty;
+        final sortedRates = _sortedRates();
+        final body = _viewModel.isLoadingRates
+            ? const Center(child: CupertinoActivityIndicator())
+            : _viewModel.rates.isEmpty
+                ? Center(
+                    child: Text(
+                      localizations.settingsCurrencyRatesEmpty,
+                      style: CupertinoTheme.of(context).textTheme.textStyle,
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    itemBuilder: (context, index) {
+                      final rate = sortedRates[index];
+                      return _CurrencyRateRow(
+                        rate: rate,
+                        baseCurrencyCode: widget.baseCurrencyCode,
+                        onDelete: () => _deleteRate(rate),
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemCount: sortedRates.length,
+                  );
+
+        return CupertinoPageScaffold(
+          backgroundColor: AppTheme.scaffoldBackgroundColor(context),
+          navigationBar: CupertinoNavigationBar(
+            middle: Text(localizations.settingsCurrencyRatesTitle),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                header,
+                Expanded(child: body),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: CupertinoButton.filled(
+                      onPressed: canAddManualRate
+                          ? () => _addManualRate(quoteCurrencies)
+                          : null,
+                      child: Text(localizations.settingsCurrencyRatesAdd),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -167,7 +155,7 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
 
   List<Currency> _availableQuoteCurrencies() {
     final normalizedBase = widget.baseCurrencyCode.toUpperCase();
-    final quotes = _currencies
+    final quotes = _viewModel.currencies
         .where(
           (currency) =>
               currency.isEnabled &&
@@ -187,17 +175,11 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
       rate: data.rate,
       fetchedAt: data.date,
     );
-    await _repository.saveRates(
-      baseCode: widget.baseCurrencyCode,
-      rates: [manualRate],
-    );
+    await _viewModel.addManualRate(manualRate);
   }
 
   Future<void> _deleteRate(CurrencyRate rate) {
-    return _repository.deleteRate(
-      baseCode: widget.baseCurrencyCode,
-      quoteCode: rate.quoteCode,
-    );
+    return _viewModel.deleteRate(rate.quoteCode);
   }
 
   Future<_ManualRateData?> _promptManualRate(List<Currency> quotes) {

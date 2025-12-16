@@ -2,19 +2,22 @@ import 'dart:async';
 
 import 'package:drift/drift.dart';
 import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subtrackr/domain/repositories/subscription_repository.dart';
 import 'package:subtrackr/infrastructure/persistence/database.dart';
 
-class SubscriptionRepository {
-  SubscriptionRepository(this._database);
+class DriftSubscriptionRepository implements SubscriptionRepository {
+  DriftSubscriptionRepository(this._database);
 
   final AppDatabase _database;
 
+  @override
   Stream<List<Subscription>> watchSubscriptions() {
     return _database.watchSubscriptions().map(
       (rows) => rows.map(_mapToDomain).toList(growable: false),
     );
   }
 
+  @override
   Future<void> addSubscription(Subscription subscription) {
     final entry = SubscriptionsTableCompanion.insert(
       name: subscription.name,
@@ -30,6 +33,7 @@ class SubscriptionRepository {
     return _database.addSubscription(entry);
   }
 
+  @override
   Future<void> updateSubscription(Subscription subscription) {
     final id = subscription.id;
     if (id == null) {
@@ -52,6 +56,7 @@ class SubscriptionRepository {
         );
   }
 
+  @override
   Future<void> deleteSubscription(int id) {
     return (_database.delete(_database.subscriptionsTable)
           ..where((tbl) => tbl.id.equals(id)))

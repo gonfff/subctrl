@@ -2,16 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
+import 'package:subtrackr/application/app_dependencies.dart';
 import 'package:subtrackr/domain/entities/tag.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
-import 'package:subtrackr/infrastructure/repositories/tag_repository.dart';
+import 'package:subtrackr/domain/exceptions/duplicate_tag_name_exception.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
 import 'package:subtrackr/presentation/theme/app_theme.dart';
 import 'package:subtrackr/presentation/theme/tag_colors.dart';
+import 'package:subtrackr/presentation/viewmodels/tag_settings_view_model.dart';
 
 class TagSettingsScreen extends StatefulWidget {
-  const TagSettingsScreen({super.key, required this.onClose});
+  const TagSettingsScreen({
+    super.key,
+    required this.dependencies,
+    required this.onClose,
+  });
 
+  final AppDependencies dependencies;
   final VoidCallback onClose;
 
   @override
@@ -19,29 +25,24 @@ class TagSettingsScreen extends StatefulWidget {
 }
 
 class _TagSettingsScreenState extends State<TagSettingsScreen> {
-  late final TagRepository _repository;
-  StreamSubscription<List<Tag>>? _subscription;
-  List<Tag> _tags = const [];
-  bool _isLoading = true;
+  late final TagSettingsViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _repository = TagRepository(AppDatabase());
-    _subscription = _repository.watchTags().listen((tags) {
-      if (!mounted) return;
-      setState(() {
-        _tags = tags;
-        _isLoading = false;
-      });
-    });
+    _viewModel = TagSettingsViewModel(
+      watchTagsUseCase: widget.dependencies.watchTagsUseCase,
+      createTagUseCase: widget.dependencies.createTagUseCase,
+      updateTagUseCase: widget.dependencies.updateTagUseCase,
+      deleteTagUseCase: widget.dependencies.deleteTagUseCase,
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _viewModel.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -50,7 +51,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
     final data = await _promptTagForm();
     if (data == null) return;
     try {
-      await _repository.createTag(
+      await _viewModel.createTag(
         name: data.name,
         colorHex: data.colorHex,
       );
@@ -64,7 +65,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
     final data = await _promptTagForm(initial: tag);
     if (data == null) return;
     try {
-      await _repository.updateTag(
+      await _viewModel.updateTag(
         tag.copyWith(name: data.name, colorHex: data.colorHex),
       );
     } on DuplicateTagNameException {
@@ -96,7 +97,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
       },
     );
     if (confirmed == true) {
-      await _repository.deleteTag(tag.id);
+      await _viewModel.deleteTag(tag.id);
     }
   }
 
@@ -196,75 +197,83 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final textTheme = CupertinoTheme.of(context).textTheme.textStyle;
-    final filtered = _filterTags(_tags);
-    final Widget listContent;
-    if (_isLoading) {
-      listContent = const Center(child: CupertinoActivityIndicator());
-    } else if (filtered.isEmpty) {
-      listContent = Center(
-        child: Text(
-          localizations.settingsTagEmpty,
-          style: textTheme,
-        ),
-      );
-    } else {
-      listContent = ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          CupertinoFormSection.insetGrouped(
-            header: Text(localizations.settingsTagsTitle),
-            children: filtered
-                .map(
-                  (tag) => _TagRow(
-                    tag: tag,
-                    onEdit: () => unawaited(_editTag(tag)),
-                    onDelete: () => unawaited(_deleteTag(tag)),
-                  ),
-                )
-                .toList(growable: false),
+
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        final filtered = _filterTags(_viewModel.tags);
+        final isLoading = _viewModel.isLoading;
+
+        final Widget listContent;
+        if (isLoading) {
+          listContent = const Center(child: CupertinoActivityIndicator());
+        } else if (filtered.isEmpty) {
+          listContent = Center(
+            child: Text(
+              localizations.settingsTagEmpty,
+              style: textTheme,
+            ),
+          );
+        } else {
+          listContent = ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              CupertinoFormSection.insetGrouped(
+                header: Text(localizations.settingsTagsTitle),
+                children: filtered
+                    .map(
+                      (tag) => _TagRow(
+                        tag: tag,
+                        onEdit: () => unawaited(_editTag(tag)),
+                        onDelete: () => unawaited(_deleteTag(tag)),
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          );
+        }
+
+        final searchField = Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          child: CupertinoSearchTextField(
+            controller: _searchController,
+            placeholder: localizations.settingsTagSearchPlaceholder,
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
-        ],
-      );
-    }
+        );
 
-    final searchField = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: CupertinoSearchTextField(
-        controller: _searchController,
-        placeholder: localizations.settingsTagSearchPlaceholder,
-        onChanged: (value) => setState(() => _searchQuery = value),
-      ),
-    );
+        final addButton = Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: SizedBox(
+            width: double.infinity,
+            child: CupertinoButton.filled(
+              onPressed: isLoading ? null : () => unawaited(_addTag()),
+              child: Text(localizations.settingsTagsAdd),
+            ),
+          ),
+        );
 
-    final addButton = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: SizedBox(
-        width: double.infinity,
-        child: CupertinoButton.filled(
-          onPressed: _isLoading ? null : () => unawaited(_addTag()),
-          child: Text(localizations.settingsTagsAdd),
-        ),
-      ),
-    );
-
-    return CupertinoPageScaffold(
-      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
-      navigationBar: CupertinoNavigationBar(
-        automaticallyImplyLeading: false,
-        leading: CupertinoNavigationBarBackButton(
-          onPressed: _handleBackPressed,
-        ),
-        middle: Text(localizations.settingsTagsTitle),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            searchField,
-            Expanded(child: listContent),
-            addButton,
-          ],
-        ),
-      ),
+        return CupertinoPageScaffold(
+          backgroundColor: AppTheme.scaffoldBackgroundColor(context),
+          navigationBar: CupertinoNavigationBar(
+            automaticallyImplyLeading: false,
+            leading: CupertinoNavigationBarBackButton(
+              onPressed: _handleBackPressed,
+            ),
+            middle: Text(localizations.settingsTagsTitle),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                searchField,
+                Expanded(child: listContent),
+                addButton,
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -1,9 +1,10 @@
 import 'package:subtrackr/domain/entities/currency_rate.dart';
 import 'package:subtrackr/domain/entities/subscription.dart';
+import 'package:subtrackr/domain/repositories/currency_repository.dart';
+import 'package:subtrackr/domain/services/currency_rates_provider.dart';
 import 'package:subtrackr/infrastructure/currency/yahoo_finance_client.dart';
-import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 
-class SubscriptionCurrencyRatesClient {
+class SubscriptionCurrencyRatesClient implements CurrencyRatesProvider {
   SubscriptionCurrencyRatesClient({
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
     required CurrencyRepository currencyRepository,
@@ -13,6 +14,7 @@ class SubscriptionCurrencyRatesClient {
   final YahooFinanceCurrencyClient _yahooClient;
   final CurrencyRepository _currencyRepository;
 
+  @override
   Future<List<CurrencyRate>> fetchRates({
     required String baseCurrencyCode,
     required Iterable<Subscription> subscriptions,

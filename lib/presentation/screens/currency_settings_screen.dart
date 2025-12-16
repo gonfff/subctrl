@@ -2,22 +2,24 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 
+import 'package:subtrackr/application/app_dependencies.dart';
 import 'package:subtrackr/domain/entities/currency.dart';
-import 'package:subtrackr/infrastructure/persistence/database.dart';
-import 'package:subtrackr/infrastructure/repositories/currency_repository.dart';
 import 'package:subtrackr/presentation/formatters/currency_formatter.dart';
 import 'package:subtrackr/presentation/l10n/app_localizations.dart';
 import 'package:subtrackr/presentation/theme/app_theme.dart';
+import 'package:subtrackr/presentation/viewmodels/currency_settings_view_model.dart';
 
 enum CurrencyListCategory { builtIn, custom }
 
 class CurrencySettingsScreen extends StatefulWidget {
   const CurrencySettingsScreen({
     super.key,
+    required this.dependencies,
     required this.onClose,
     required this.category,
   });
 
+  final AppDependencies dependencies;
   final VoidCallback onClose;
   final CurrencyListCategory category;
 
@@ -26,41 +28,36 @@ class CurrencySettingsScreen extends StatefulWidget {
 }
 
 class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
-  late final CurrencyRepository _currencyRepository;
-  StreamSubscription<List<Currency>>? _subscription;
-  List<Currency> _currencies = const [];
-  bool _isLoading = true;
+  late final CurrencySettingsViewModel _viewModel;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _currencyRepository = CurrencyRepository(AppDatabase());
-    unawaited(_listenCurrencies());
+    _viewModel = CurrencySettingsViewModel(
+      watchCurrenciesUseCase: widget.dependencies.watchCurrenciesUseCase,
+      setCurrencyEnabledUseCase:
+          widget.dependencies.setCurrencyEnabledUseCase,
+      addCustomCurrencyUseCase:
+          widget.dependencies.addCustomCurrencyUseCase,
+      deleteCustomCurrencyUseCase:
+          widget.dependencies.deleteCustomCurrencyUseCase,
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _viewModel.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _listenCurrencies() async {
-    await _currencyRepository.seedIfEmpty();
-    _subscription?.cancel();
-    _subscription = _currencyRepository.watchCurrencies().listen((currencies) {
-      if (!mounted) return;
-      setState(() {
-        _currencies = currencies;
-        _isLoading = false;
-      });
-    });
-  }
-
-  Future<void> _toggleCurrency(Currency currency, bool value) async {
-    await _currencyRepository.setCurrencyEnabled(currency.code, value);
+  Future<void> _toggleCurrency(Currency currency, bool value) {
+    return _viewModel.toggleCurrency(
+      code: currency.code,
+      isEnabled: value,
+    );
   }
 
   Future<void> _deleteCurrency(Currency currency) async {
@@ -88,14 +85,14 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     if (confirmed != true) {
       return;
     }
-    await _currencyRepository.deleteCustomCurrency(currency.code);
+    await _viewModel.deleteCustomCurrency(currency.code);
   }
 
   Future<void> _addCustomCurrency() async {
     final data = await _promptNewCurrency();
     if (data == null) return;
     try {
-      await _currencyRepository.addCustomCurrency(
+      await _viewModel.addCustomCurrency(
         code: data.code,
         name: data.name,
         symbol: data.symbol,
@@ -227,82 +224,93 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     final headerText = isCustomCategory
         ? localizations.settingsCurrenciesCustomList
         : localizations.settingsCurrenciesDefaultList;
-    final relevantCurrencies = _currencies
-        .where((currency) =>
-            isCustomCategory ? currency.isCustom : !currency.isCustom)
-        .toList(growable: false);
-    final filtered = _filterByQuery(relevantCurrencies);
     final theme = CupertinoTheme.of(context).textTheme.textStyle;
-    final Widget listContent;
-    if (_isLoading) {
-      listContent = const Center(child: CupertinoActivityIndicator());
-    } else if (filtered.isEmpty) {
-      listContent = Center(
-        child: Text(
-          localizations.currencySearchEmpty,
-          style: theme,
-        ),
-      );
-    } else {
-      listContent = ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          CupertinoFormSection.insetGrouped(
-            header: Text(headerText),
-            children: filtered
-                .map(
-                  (currency) => _CurrencyRow(
-                    currency: currency,
-                    onChanged: (value) =>
-                        unawaited(_toggleCurrency(currency, value)),
-                    onDelete: isCustomCategory
-                        ? () => unawaited(_deleteCurrency(currency))
-                        : null,
-                  ),
-                )
-                .toList(growable: false),
+
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, _) {
+        final relevantCurrencies = _viewModel.currencies
+            .where(
+              (currency) =>
+                  isCustomCategory ? currency.isCustom : !currency.isCustom,
+            )
+            .toList(growable: false);
+        final filtered = _filterByQuery(relevantCurrencies);
+        final isLoading = _viewModel.isLoading;
+        final Widget listContent;
+        if (isLoading) {
+          listContent = const Center(child: CupertinoActivityIndicator());
+        } else if (filtered.isEmpty) {
+          listContent = Center(
+            child: Text(
+              localizations.currencySearchEmpty,
+              style: theme,
+            ),
+          );
+        } else {
+          listContent = ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              CupertinoFormSection.insetGrouped(
+                header: Text(headerText),
+                children: filtered
+                    .map(
+                      (currency) => _CurrencyRow(
+                        currency: currency,
+                        onChanged: (value) =>
+                            unawaited(_toggleCurrency(currency, value)),
+                        onDelete: isCustomCategory
+                            ? () => unawaited(_deleteCurrency(currency))
+                            : null,
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          );
+        }
+
+        final searchField = Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          child: CupertinoSearchTextField(
+            controller: _searchController,
+            placeholder: localizations.currencySearchPlaceholder,
+            onChanged: (value) => setState(() => _searchQuery = value),
           ),
-        ],
-      );
-    }
-    final searchField = Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: CupertinoSearchTextField(
-        controller: _searchController,
-        placeholder: localizations.currencySearchPlaceholder,
-        onChanged: (value) => setState(() => _searchQuery = value),
-      ),
-    );
-    final bodyChildren = <Widget>[
-      searchField,
-      Expanded(child: listContent),
-      if (isCustomCategory)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: CupertinoButton.filled(
-              onPressed: _isLoading ? null : _addCustomCurrency,
-              child: Text(localizations.settingsCurrenciesAddCustom),
+        );
+
+        final bodyChildren = <Widget>[
+          searchField,
+          Expanded(child: listContent),
+          if (isCustomCategory)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: CupertinoButton.filled(
+                  onPressed: isLoading ? null : _addCustomCurrency,
+                  child: Text(localizations.settingsCurrenciesAddCustom),
+                ),
+              ),
+            ),
+        ];
+
+        return CupertinoPageScaffold(
+          backgroundColor: AppTheme.scaffoldBackgroundColor(context),
+          navigationBar: CupertinoNavigationBar(
+            automaticallyImplyLeading: false,
+            leading: CupertinoNavigationBarBackButton(
+              onPressed: _handleBackPressed,
+            ),
+            middle: Text(localizations.settingsCurrenciesTitle),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: bodyChildren,
             ),
           ),
-        ),
-    ];
-
-    return CupertinoPageScaffold(
-      backgroundColor: AppTheme.scaffoldBackgroundColor(context),
-      navigationBar: CupertinoNavigationBar(
-        automaticallyImplyLeading: false,
-        leading: CupertinoNavigationBarBackButton(
-          onPressed: _handleBackPressed,
-        ),
-        middle: Text(localizations.settingsCurrenciesTitle),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: bodyChildren,
-        ),
-      ),
+        );
+      },
     );
   }
 }
