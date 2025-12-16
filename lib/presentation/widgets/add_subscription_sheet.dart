@@ -331,7 +331,7 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
         helper: helperText == null ? null : Text(helperText),
         child: CupertinoButton(
           padding: EdgeInsets.zero,
-          minSize: 0,
+          minimumSize: Size.zero,
           alignment: Alignment.centerRight,
           onPressed: onTap,
           child: Row(
@@ -359,7 +359,6 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
       );
     }
 
-    // Скругление insetGrouped надежнее делать через ClipRRect.
     Widget roundedSection({required List<Widget> children, Widget? header}) {
       final section = CupertinoFormSection.insetGrouped(
         margin: EdgeInsets.zero,

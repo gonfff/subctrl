@@ -13,8 +13,8 @@ import 'package:subctrl/presentation/screens/tag_settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
-import 'package:subctrl/presentation/widgets/currency_picker.dart';
 import 'package:subctrl/presentation/viewmodels/settings_view_model.dart';
+import 'package:subctrl/presentation/widgets/currency_picker.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -334,6 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           backgroundColor: AppTheme.scaffoldBackgroundColor(context),
           navigationBar: CupertinoNavigationBar(
             automaticallyImplyLeading: false,
+            backgroundColor: AppTheme.scaffoldBackgroundColor(context),
             leading: CupertinoButton(
               padding: EdgeInsets.zero,
               onPressed: widget.onRequestClose,
@@ -342,7 +343,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             middle: Text(localizations.settingsTitle),
           ),
           child: ListView(
-            padding: EdgeInsets.only(top: 16, bottom: mediaPadding.bottom + 16),
+            padding: EdgeInsets.only(
+              top: mediaPadding.top,
+              bottom: mediaPadding.bottom,
+            ),
             children: [
               CupertinoFormSection.insetGrouped(
                 header: Text(localizations.settingsGeneralSection),

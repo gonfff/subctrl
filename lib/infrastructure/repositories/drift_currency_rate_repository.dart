@@ -2,12 +2,13 @@ import 'package:drift/drift.dart';
 
 import 'package:subctrl/domain/entities/currency_rate.dart';
 import 'package:subctrl/domain/repositories/currency_rate_repository.dart';
+import 'package:subctrl/infrastructure/persistence/daos/currency_rates_dao.dart';
 import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftCurrencyRateRepository implements CurrencyRateRepository {
-  DriftCurrencyRateRepository(this._database);
+  DriftCurrencyRateRepository(this._dao);
 
-  final AppDatabase _database;
+  final CurrencyRatesDao _dao;
 
   @override
   Future<void> saveRates({
@@ -24,12 +25,12 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
         fetchedAt: Value(rate.fetchedAt),
       ),
     );
-    await _database.upsertCurrencyRates(companions);
+    await _dao.upsertRates(companions);
   }
 
   @override
   Future<List<CurrencyRate>> getRates(String baseCode) async {
-    final rows = await _database.getCurrencyRates(baseCode);
+    final rows = await _dao.getRates(baseCode);
     return rows
         .map(
           (row) => CurrencyRate(
@@ -47,7 +48,7 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
     required String baseCode,
     required String quoteCode,
   }) async {
-    final row = await _database.findCurrencyRate(
+    final row = await _dao.findRate(
       baseCode: baseCode,
       quoteCode: quoteCode,
     );
@@ -62,7 +63,7 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
 
   @override
   Future<void> clearRates(String baseCode) {
-    return _database.deleteCurrencyRates(baseCode);
+    return _dao.deleteRates(baseCode);
   }
 
   @override
@@ -70,7 +71,7 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
     required String baseCode,
     required String quoteCode,
   }) {
-    return _database.deleteCurrencyRate(
+    return _dao.deleteRate(
       baseCode: baseCode,
       quoteCode: quoteCode,
     );
@@ -78,8 +79,8 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
 
   @override
   Stream<List<CurrencyRate>> watchRates(String baseCode) {
-    return _database
-        .watchCurrencyRates(baseCode)
+    return _dao
+        .watchRates(baseCode)
         .map(
           (rows) => rows
               .map(

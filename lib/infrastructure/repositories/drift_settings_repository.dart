@@ -1,10 +1,10 @@
 import 'package:subctrl/domain/repositories/settings_repository.dart';
-import 'package:subctrl/infrastructure/persistence/database.dart';
+import 'package:subctrl/infrastructure/persistence/daos/settings_dao.dart';
 
 class DriftSettingsRepository implements SettingsRepository {
-  DriftSettingsRepository(this._database);
+  DriftSettingsRepository(this._dao);
 
-  final AppDatabase _database;
+  final SettingsDao _dao;
 
   static const _baseCurrencyKey = 'base_currency_code';
   static const _themePreferenceKey = 'theme_preference';
@@ -14,37 +14,37 @@ class DriftSettingsRepository implements SettingsRepository {
 
   @override
   Future<String?> getBaseCurrencyCode() {
-    return _database.getSetting(_baseCurrencyKey);
+    return _dao.getSetting(_baseCurrencyKey);
   }
 
   @override
   Future<void> setBaseCurrencyCode(String code) {
-    return _database.saveSetting(_baseCurrencyKey, code.toUpperCase());
+    return _dao.saveSetting(_baseCurrencyKey, code.toUpperCase());
   }
 
   @override
   Future<String?> getThemePreference() {
-    return _database.getSetting(_themePreferenceKey);
+    return _dao.getSetting(_themePreferenceKey);
   }
 
   @override
   Future<void> setThemePreference(String preference) {
-    return _database.saveSetting(_themePreferenceKey, preference);
+    return _dao.saveSetting(_themePreferenceKey, preference);
   }
 
   @override
   Future<String?> getLocaleCode() {
-    return _database.getSetting(_localeKey);
+    return _dao.getSetting(_localeKey);
   }
 
   @override
   Future<void> setLocaleCode(String? code) {
-    return _database.saveSetting(_localeKey, code);
+    return _dao.saveSetting(_localeKey, code);
   }
 
   @override
   Future<bool> getCurrencyRatesAutoDownloadEnabled() async {
-    final stored = await _database.getSetting(_currencyRatesAutoDownloadKey);
+    final stored = await _dao.getSetting(_currencyRatesAutoDownloadKey);
     if (stored == null) {
       return true;
     }
@@ -53,7 +53,7 @@ class DriftSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> setCurrencyRatesAutoDownloadEnabled(bool value) {
-    return _database.saveSetting(
+    return _dao.saveSetting(
       _currencyRatesAutoDownloadKey,
       value.toString(),
     );

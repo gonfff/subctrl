@@ -3,22 +3,23 @@ import 'package:drift/drift.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/domain/exceptions/duplicate_tag_name_exception.dart';
 import 'package:subctrl/domain/repositories/tag_repository.dart';
+import 'package:subctrl/infrastructure/persistence/daos/tags_dao.dart';
 import 'package:subctrl/infrastructure/persistence/database.dart';
 
 class DriftTagRepository implements TagRepository {
-  DriftTagRepository(this._database);
+  DriftTagRepository(this._dao);
 
-  final AppDatabase _database;
+  final TagsDao _dao;
 
   @override
   Future<List<Tag>> getTags() async {
-    final rows = await _database.getTags();
+    final rows = await _dao.getTags();
     return rows.map(_mapRow).toList(growable: false);
   }
 
   @override
   Stream<List<Tag>> watchTags() {
-    return _database.watchTags().map(
+    return _dao.watchTags().map(
       (rows) => rows.map(_mapRow).toList(growable: false),
     );
   }
@@ -31,7 +32,7 @@ class DriftTagRepository implements TagRepository {
     await _ensureUniqueName(name);
     final trimmedName = name.trim();
     final normalizedColor = _normalizeColor(colorHex);
-    final id = await _database.insertTag(
+    final id = await _dao.insert(
       TagsTableCompanion.insert(name: trimmedName, colorHex: normalizedColor),
     );
     return Tag(id: id, name: trimmedName, colorHex: normalizedColor);
@@ -40,7 +41,7 @@ class DriftTagRepository implements TagRepository {
   @override
   Future<void> updateTag(Tag tag) async {
     await _ensureUniqueName(tag.name, excludingId: tag.id);
-    await _database.updateTag(
+    await _dao.update(
       tag.id,
       TagsTableCompanion(
         name: Value(tag.name.trim()),
@@ -51,7 +52,7 @@ class DriftTagRepository implements TagRepository {
 
   @override
   Future<void> deleteTag(int id) {
-    return _database.deleteTag(id);
+    return _dao.delete(id);
   }
 
   Tag _mapRow(TagsTableData data) {
@@ -67,15 +68,8 @@ class DriftTagRepository implements TagRepository {
 
   Future<void> _ensureUniqueName(String name, {int? excludingId}) async {
     final normalized = name.trim().toLowerCase();
-    final row = await _database
-        .customSelect(
-          'SELECT id FROM tags_table WHERE LOWER(name) = ? LIMIT 1',
-          variables: [Variable<String>(normalized)],
-          readsFrom: {_database.tagsTable},
-        )
-        .getSingleOrNull();
-    if (row == null) return;
-    final existingId = row.read<int>('id');
+    final existingId = await _dao.findIdByNormalizedName(normalized);
+    if (existingId == null) return;
     if (excludingId != null && existingId == excludingId) return;
     throw DuplicateTagNameException(name.trim());
   }

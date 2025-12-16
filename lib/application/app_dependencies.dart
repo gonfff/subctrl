@@ -26,6 +26,11 @@ import 'package:subctrl/application/tags/update_tag_use_case.dart';
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
 import 'package:subctrl/infrastructure/currency/subscription_currency_rates_client.dart';
 import 'package:subctrl/infrastructure/currency/yahoo_finance_client.dart';
+import 'package:subctrl/infrastructure/persistence/daos/currencies_dao.dart';
+import 'package:subctrl/infrastructure/persistence/daos/currency_rates_dao.dart';
+import 'package:subctrl/infrastructure/persistence/daos/settings_dao.dart';
+import 'package:subctrl/infrastructure/persistence/daos/subscriptions_dao.dart';
+import 'package:subctrl/infrastructure/persistence/daos/tags_dao.dart';
 import 'package:subctrl/infrastructure/persistence/database.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_rate_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_repository.dart';
@@ -66,11 +71,16 @@ class AppDependencies {
 
   factory AppDependencies() {
     final database = AppDatabase();
-    final subscriptionRepository = DriftSubscriptionRepository(database);
-    final currencyRepository = DriftCurrencyRepository(database);
-    final currencyRateRepository = DriftCurrencyRateRepository(database);
-    final tagRepository = DriftTagRepository(database);
-    final settingsRepository = DriftSettingsRepository(database);
+    final subscriptionsDao = SubscriptionsDao(database);
+    final currenciesDao = CurrenciesDao(database);
+    final currencyRatesDao = CurrencyRatesDao(database);
+    final tagsDao = TagsDao(database);
+    final settingsDao = SettingsDao(database);
+    final subscriptionRepository = DriftSubscriptionRepository(subscriptionsDao);
+    final currencyRepository = DriftCurrencyRepository(currenciesDao);
+    final currencyRateRepository = DriftCurrencyRateRepository(currencyRatesDao);
+    final tagRepository = DriftTagRepository(tagsDao);
+    final settingsRepository = DriftSettingsRepository(settingsDao);
     final yahooFinanceClient = YahooFinanceCurrencyClient();
     final subscriptionRatesClient = SubscriptionCurrencyRatesClient(
       yahooFinanceCurrencyClient: yahooFinanceClient,
