@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart';
 import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/domain/entities/currency.dart';
+import 'package:subctrl/infrastructure/platform/notification_permission_service.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/about_screen.dart';
 import 'package:subctrl/presentation/screens/currency_rates_screen.dart';
@@ -12,6 +13,7 @@ import 'package:subctrl/presentation/screens/support_screen.dart';
 import 'package:subctrl/presentation/screens/tag_settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/settings_view_model.dart';
 import 'package:subctrl/presentation/widgets/currency_picker.dart';
@@ -28,6 +30,10 @@ class SettingsScreen extends StatefulWidget {
     required this.onBaseCurrencyChanged,
     required this.currencyRatesAutoDownloadEnabled,
     required this.onCurrencyRatesAutoDownloadChanged,
+    required this.notificationsEnabled,
+    required this.onNotificationsPreferenceChanged,
+    required this.notificationReminderOption,
+    required this.onNotificationReminderChanged,
     required this.onRequestClose,
   });
 
@@ -40,6 +46,10 @@ class SettingsScreen extends StatefulWidget {
   final BaseCurrencyChangedCallback onBaseCurrencyChanged;
   final bool currencyRatesAutoDownloadEnabled;
   final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
+  final bool notificationsEnabled;
+  final ValueChanged<bool> onNotificationsPreferenceChanged;
+  final NotificationReminderOption notificationReminderOption;
+  final NotificationReminderChangedCallback onNotificationReminderChanged;
   final VoidCallback onRequestClose;
 
   @override
@@ -48,20 +58,26 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final SettingsViewModel _viewModel;
+  late final NotificationPermissionService _notificationPermissionService;
   late ThemePreference _currentThemePreference;
   Locale? _currentLocale;
   String? _currentBaseCurrencyCode;
   late bool _isCurrencyRatesAutoDownloadEnabled;
+  late bool _notificationsEnabled;
+  late NotificationReminderOption _notificationReminderOption;
 
   @override
   void initState() {
     super.initState();
     _viewModel = SettingsViewModel(widget.dependencies.watchCurrenciesUseCase);
+    _notificationPermissionService = NotificationPermissionService();
     _currentThemePreference = widget.themePreference;
     _currentLocale = widget.selectedLocale;
     _currentBaseCurrencyCode = widget.baseCurrencyCode?.toUpperCase();
     _isCurrencyRatesAutoDownloadEnabled =
         widget.currencyRatesAutoDownloadEnabled;
+    _notificationsEnabled = widget.notificationsEnabled;
+    _notificationReminderOption = widget.notificationReminderOption;
   }
 
   @override
@@ -107,6 +123,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _isCurrencyRatesAutoDownloadEnabled =
             widget.currencyRatesAutoDownloadEnabled;
+      });
+    }
+    if (oldWidget.notificationsEnabled != widget.notificationsEnabled) {
+      setState(() {
+        _notificationsEnabled = widget.notificationsEnabled;
+      });
+    }
+    if (oldWidget.notificationReminderOption !=
+        widget.notificationReminderOption) {
+      setState(() {
+        _notificationReminderOption = widget.notificationReminderOption;
       });
     }
   }
@@ -284,6 +311,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
     widget.onCurrencyRatesAutoDownloadChanged(value);
   }
 
+  void _applyNotificationsPreference(bool isEnabled) {
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = isEnabled;
+    });
+    widget.onNotificationsPreferenceChanged(isEnabled);
+  }
+
+  Future<void> _handleNotificationsToggleChanged(bool value) async {
+    if (value) {
+      final status = await _notificationPermissionService.requestPermission();
+      final isGranted = status == NotificationPermissionStatus.authorized ||
+          status == NotificationPermissionStatus.provisional ||
+          status == NotificationPermissionStatus.ephemeral;
+      _applyNotificationsPreference(isGranted);
+      if (!isGranted && mounted) {
+        await _showNotificationsDeniedDialog();
+      }
+      return;
+    }
+    _applyNotificationsPreference(false);
+  }
+
+  void _onNotificationsSwitchChanged(bool value) {
+    unawaited(_handleNotificationsToggleChanged(value));
+  }
+
+  Future<void> _handleOpenAppSettings() async {
+    await _notificationPermissionService.openAppSettings();
+  }
+
+  Future<void> _showNotificationsDeniedDialog() async {
+    final localizations = AppLocalizations.of(context);
+    await showCupertinoDialog<void>(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: Text(localizations.settingsNotificationsTitle),
+          content: Text(localizations.settingsNotificationsPermissionDenied),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop();
+                unawaited(_handleOpenAppSettings());
+              },
+              child: Text(localizations.settingsNotificationsOpenSettings),
+            ),
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(localizations.settingsClose),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _selectNotificationReminderOption() async {
+    final selected = await showCupertinoModalPopup<NotificationReminderOption>(
+      context: context,
+      builder: (context) {
+        final localizations = AppLocalizations.of(context);
+        return CupertinoActionSheet(
+          title: Text(localizations.settingsNotificationsWhen),
+          actions: [
+            for (final option in NotificationReminderOption.values)
+              CupertinoActionSheetAction(
+                onPressed: () => Navigator.of(context).pop(option),
+                isDefaultAction: option == _notificationReminderOption,
+                child: Text(
+                  _notificationReminderLabel(localizations, option),
+                ),
+              ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(localizations.settingsClose),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    _handleNotificationReminderChanged(selected);
+  }
+
+  void _handleNotificationReminderChanged(
+    NotificationReminderOption option,
+  ) {
+    setState(() {
+      _notificationReminderOption = option;
+    });
+    widget.onNotificationReminderChanged(option);
+  }
+
+  String _notificationReminderLabel(
+    AppLocalizations localizations,
+    NotificationReminderOption option,
+  ) {
+    switch (option) {
+      case NotificationReminderOption.weekBefore:
+        return localizations.settingsNotificationsWeekBefore;
+      case NotificationReminderOption.twoDaysBefore:
+        return localizations.settingsNotificationsTwoDaysBefore;
+      case NotificationReminderOption.dayBefore:
+        return localizations.settingsNotificationsDayBefore;
+      case NotificationReminderOption.sameDay:
+        return localizations.settingsNotificationsSameDay;
+    }
+  }
+
   Future<void> _openCurrencyRates() async {
     final baseCode = _resolvedBaseCurrency()?.code ?? _currentBaseCurrencyCode;
     if (baseCode == null) return;
@@ -329,7 +466,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             !_viewModel.isLoading &&
             baseCurrencyLabel != localizations.settingsBaseCurrencyUnset;
         final mediaPadding = MediaQuery.paddingOf(context);
-
+        final reminderLabel =
+            _notificationReminderLabel(localizations, _notificationReminderOption);
+        final reminderValue = _notificationsEnabled
+            ? reminderLabel
+            : localizations.settingsNotificationsStatusOff;
         return CupertinoPageScaffold(
           backgroundColor: AppTheme.scaffoldBackgroundColor(context),
           navigationBar: CupertinoNavigationBar(
@@ -368,6 +509,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: themeLabel,
                     onTap: _selectTheme,
                     showChevron: true,
+                  ),
+                ],
+              ),
+              CupertinoFormSection.insetGrouped(
+                header: Text(localizations.settingsNotificationsTitle),
+                children: [
+                  _SettingsSwitchTile(
+                    label: localizations.settingsNotificationsLabel,
+                    value: _notificationsEnabled,
+                    onChanged: _onNotificationsSwitchChanged,
+                  ),
+                  _SettingsTile(
+                    label: localizations.settingsNotificationsWhen,
+                    value: reminderValue,
+                    onTap: _notificationsEnabled
+                        ? _selectNotificationReminderOption
+                        : null,
+                    showChevron: _notificationsEnabled,
                   ),
                 ],
               ),

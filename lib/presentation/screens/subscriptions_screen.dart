@@ -5,6 +5,7 @@ import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 import 'package:subctrl/presentation/widgets/add_subscription_sheet.dart';
@@ -24,6 +25,10 @@ class SubscriptionsScreen extends StatefulWidget {
     required this.onBaseCurrencyChanged,
     required this.currencyRatesAutoDownloadEnabled,
     required this.onCurrencyRatesAutoDownloadChanged,
+    required this.notificationsEnabled,
+    required this.onNotificationsPreferenceChanged,
+    required this.notificationReminderOption,
+    required this.onNotificationReminderChanged,
   });
 
   final AppDependencies dependencies;
@@ -35,6 +40,10 @@ class SubscriptionsScreen extends StatefulWidget {
   final BaseCurrencyChangedCallback onBaseCurrencyChanged;
   final bool currencyRatesAutoDownloadEnabled;
   final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
+  final bool notificationsEnabled;
+  final ValueChanged<bool> onNotificationsPreferenceChanged;
+  final NotificationReminderOption notificationReminderOption;
+  final NotificationReminderChangedCallback onNotificationReminderChanged;
 
   @override
   State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
@@ -216,19 +225,25 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     await showCupertinoModalPopup<void>(
       context: context,
       barrierColor: CupertinoColors.black.withValues(alpha: 0.45),
-      builder: (context) {
-        return SettingsSheet(
-          dependencies: widget.dependencies,
-          themePreference: widget.themePreference,
-          onThemePreferenceChanged: widget.onThemePreferenceChanged,
-          selectedLocale: widget.selectedLocale,
-          onLocaleChanged: widget.onLocaleChanged,
-          baseCurrencyCode: widget.baseCurrencyCode,
-          onBaseCurrencyChanged: widget.onBaseCurrencyChanged,
-          currencyRatesAutoDownloadEnabled: _viewModel.autoDownloadEnabled,
-          onCurrencyRatesAutoDownloadChanged:
-              _handleCurrencyRatesAutoDownloadPreferenceChanged,
-        );
+          builder: (context) {
+            return SettingsSheet(
+              dependencies: widget.dependencies,
+              themePreference: widget.themePreference,
+              onThemePreferenceChanged: widget.onThemePreferenceChanged,
+              selectedLocale: widget.selectedLocale,
+              onLocaleChanged: widget.onLocaleChanged,
+              baseCurrencyCode: widget.baseCurrencyCode,
+              onBaseCurrencyChanged: widget.onBaseCurrencyChanged,
+              currencyRatesAutoDownloadEnabled: _viewModel.autoDownloadEnabled,
+              onCurrencyRatesAutoDownloadChanged:
+                  _handleCurrencyRatesAutoDownloadPreferenceChanged,
+              notificationsEnabled: widget.notificationsEnabled,
+              onNotificationsPreferenceChanged:
+                  widget.onNotificationsPreferenceChanged,
+              notificationReminderOption: widget.notificationReminderOption,
+              onNotificationReminderChanged:
+                  widget.onNotificationReminderChanged,
+            );
       },
     );
   }

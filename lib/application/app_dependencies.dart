@@ -11,10 +11,14 @@ import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case
 import 'package:subctrl/application/settings/get_base_currency_code_use_case.dart';
 import 'package:subctrl/application/settings/get_currency_rates_auto_download_use_case.dart';
 import 'package:subctrl/application/settings/get_locale_code_use_case.dart';
+import 'package:subctrl/application/settings/get_notification_reminder_offset_use_case.dart';
+import 'package:subctrl/application/settings/get_notifications_enabled_use_case.dart';
 import 'package:subctrl/application/settings/get_theme_preference_use_case.dart';
 import 'package:subctrl/application/settings/set_base_currency_code_use_case.dart';
 import 'package:subctrl/application/settings/set_currency_rates_auto_download_use_case.dart';
 import 'package:subctrl/application/settings/set_locale_code_use_case.dart';
+import 'package:subctrl/application/settings/set_notification_reminder_offset_use_case.dart';
+import 'package:subctrl/application/settings/set_notifications_enabled_use_case.dart';
 import 'package:subctrl/application/settings/set_theme_preference_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
@@ -66,6 +70,10 @@ class AppDependencies {
     required this.setLocaleCodeUseCase,
     required this.getCurrencyRatesAutoDownloadUseCase,
     required this.setCurrencyRatesAutoDownloadUseCase,
+    required this.getNotificationsEnabledUseCase,
+    required this.setNotificationsEnabledUseCase,
+    required this.getNotificationReminderOffsetUseCase,
+    required this.setNotificationReminderOffsetUseCase,
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
   }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
 
@@ -138,6 +146,16 @@ class AppDependencies {
       setCurrencyRatesAutoDownloadUseCase: SetCurrencyRatesAutoDownloadUseCase(
         settingsRepository,
       ),
+      getNotificationsEnabledUseCase: GetNotificationsEnabledUseCase(
+        settingsRepository,
+      ),
+      setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase(
+        settingsRepository,
+      ),
+      getNotificationReminderOffsetUseCase:
+          GetNotificationReminderOffsetUseCase(settingsRepository),
+      setNotificationReminderOffsetUseCase:
+          SetNotificationReminderOffsetUseCase(settingsRepository),
       yahooFinanceCurrencyClient: yahooFinanceClient,
     );
   }
@@ -172,6 +190,12 @@ class AppDependencies {
   final SetLocaleCodeUseCase setLocaleCodeUseCase;
   final GetCurrencyRatesAutoDownloadUseCase getCurrencyRatesAutoDownloadUseCase;
   final SetCurrencyRatesAutoDownloadUseCase setCurrencyRatesAutoDownloadUseCase;
+  final GetNotificationsEnabledUseCase getNotificationsEnabledUseCase;
+  final SetNotificationsEnabledUseCase setNotificationsEnabledUseCase;
+  final GetNotificationReminderOffsetUseCase
+      getNotificationReminderOffsetUseCase;
+  final SetNotificationReminderOffsetUseCase
+      setNotificationReminderOffsetUseCase;
 
   final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
 

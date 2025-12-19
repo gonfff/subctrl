@@ -4,8 +4,6 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-
-import 'package:subctrl/infrastructure/persistence/seeds/currency_seed_data.dart';
 import 'package:subctrl/infrastructure/persistence/tables/currencies_table.dart';
 import 'package:subctrl/infrastructure/persistence/tables/currency_rates_table.dart';
 import 'package:subctrl/infrastructure/persistence/tables/settings_table.dart';
@@ -47,5 +45,4 @@ class AppDatabase extends _$AppDatabase {
       await migrator.createAll();
     },
   );
-
 }

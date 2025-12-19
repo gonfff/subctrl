@@ -28,6 +28,17 @@ class AppLocalizations {
       'settingsBaseCurrencyUnset': 'Not set',
       'settingsThemeSection': 'Theme',
       'settingsLanguageSection': 'Language',
+      'settingsNotificationsLabel': 'Notifications',
+      'settingsNotificationsPermissionDenied': 'Notifications permission was denied. Enable it in system settings.',
+      'settingsNotificationsOpenSettings': 'Open settings',
+      'settingsNotificationsTitle': 'Notifications',
+      'settingsNotificationsStatusOn': 'Enabled',
+      'settingsNotificationsStatusOff': 'Disabled',
+      'settingsNotificationsWhen': 'Notify me',
+      'settingsNotificationsWeekBefore': '1 week before payment',
+      'settingsNotificationsTwoDaysBefore': '2 days before payment',
+      'settingsNotificationsDayBefore': '1 day before payment',
+      'settingsNotificationsSameDay': 'On payment day',
       'settingsCurrenciesSection': 'Currencies',
       'settingsCurrenciesManage': 'Manage currencies',
       'settingsTagsSection': 'Tags',
@@ -141,6 +152,17 @@ class AppLocalizations {
       'settingsBaseCurrencyUnset': 'Не выбрана',
       'settingsThemeSection': 'Тема',
       'settingsLanguageSection': 'Язык',
+      'settingsNotificationsLabel': 'Уведомления',
+      'settingsNotificationsPermissionDenied': 'Доступ к уведомлениям запрещён. Разрешите его в настройках телефона.',
+      'settingsNotificationsOpenSettings': 'Открыть настройки',
+      'settingsNotificationsTitle': 'Уведомления',
+      'settingsNotificationsStatusOn': 'Включены',
+      'settingsNotificationsStatusOff': 'Выключены',
+      'settingsNotificationsWhen': 'Когда напоминать',
+      'settingsNotificationsWeekBefore': 'За неделю до платежа',
+      'settingsNotificationsTwoDaysBefore': 'За 2 дня до платежа',
+      'settingsNotificationsDayBefore': 'За день до платежа',
+      'settingsNotificationsSameDay': 'В день платежа',
       'settingsCurrenciesSection': 'Валюты',
       'settingsCurrenciesManage': 'Управление списком',
       'settingsTagsSection': 'Теги',
@@ -268,6 +290,28 @@ class AppLocalizations {
       _strings['settingsBaseCurrencyUnset']!;
   String get settingsThemeSection => _strings['settingsThemeSection']!;
   String get settingsLanguageSection => _strings['settingsLanguageSection']!;
+  String get settingsNotificationsLabel =>
+      _strings['settingsNotificationsLabel']!;
+  String get settingsNotificationsPermissionDenied =>
+      _strings['settingsNotificationsPermissionDenied']!;
+  String get settingsNotificationsOpenSettings =>
+      _strings['settingsNotificationsOpenSettings']!;
+  String get settingsNotificationsTitle =>
+      _strings['settingsNotificationsTitle']!;
+  String get settingsNotificationsStatusOn =>
+      _strings['settingsNotificationsStatusOn']!;
+  String get settingsNotificationsStatusOff =>
+      _strings['settingsNotificationsStatusOff']!;
+  String get settingsNotificationsWhen =>
+      _strings['settingsNotificationsWhen']!;
+  String get settingsNotificationsWeekBefore =>
+      _strings['settingsNotificationsWeekBefore']!;
+  String get settingsNotificationsTwoDaysBefore =>
+      _strings['settingsNotificationsTwoDaysBefore']!;
+  String get settingsNotificationsDayBefore =>
+      _strings['settingsNotificationsDayBefore']!;
+  String get settingsNotificationsSameDay =>
+      _strings['settingsNotificationsSameDay']!;
   String get settingsCurrenciesSection =>
       _strings['settingsCurrenciesSection']!;
   String get settingsCurrenciesManage => _strings['settingsCurrenciesManage']!;

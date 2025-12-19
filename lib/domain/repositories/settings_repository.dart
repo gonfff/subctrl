@@ -14,4 +14,12 @@ abstract class SettingsRepository {
   Future<bool> getCurrencyRatesAutoDownloadEnabled();
 
   Future<void> setCurrencyRatesAutoDownloadEnabled(bool value);
+
+  Future<bool> getNotificationsEnabled();
+
+  Future<void> setNotificationsEnabled(bool value);
+
+  Future<String?> getNotificationReminderOffset();
+
+  Future<void> setNotificationReminderOffset(String value);
 }

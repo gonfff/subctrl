@@ -6,6 +6,7 @@ import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/analytics_screen.dart';
 import 'package:subctrl/presentation/screens/subscriptions_screen.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 void main() {
@@ -25,6 +26,9 @@ class _SubctrlAppState extends State<SubctrlApp> {
   String? _baseCurrencyCode =
       'USD'; // Default value to avoid null during initialization
   bool _isCurrencyRatesAutoDownloadEnabled = true;
+  bool _areNotificationsEnabled = false;
+  NotificationReminderOption _notificationReminderOption =
+      NotificationReminderOption.twoDaysBefore;
   late final AppDependencies _dependencies;
 
   @override
@@ -54,6 +58,13 @@ class _SubctrlAppState extends State<SubctrlApp> {
     var storedBaseCurrency = await _dependencies.getBaseCurrencyCodeUseCase();
     final shouldDownloadRates = await _dependencies
         .getCurrencyRatesAutoDownloadUseCase();
+    final shouldEnableNotifications =
+        await _dependencies.getNotificationsEnabledUseCase();
+    final storedReminder =
+        await _dependencies.getNotificationReminderOffsetUseCase();
+    final reminderOption =
+        NotificationReminderOption.fromStorage(storedReminder);
+    final shouldPersistReminder = storedReminder == null;
 
     final themePreference = ThemePreference.values.firstWhere(
       (value) => value.name == storedTheme,
@@ -74,10 +85,17 @@ class _SubctrlAppState extends State<SubctrlApp> {
       _locale = locale;
       _baseCurrencyCode = storedBaseCurrency;
       _isCurrencyRatesAutoDownloadEnabled = shouldDownloadRates;
+      _areNotificationsEnabled = shouldEnableNotifications;
+      _notificationReminderOption = reminderOption;
     });
 
     if (shouldPersistBaseCurrency) {
       await _dependencies.setBaseCurrencyCodeUseCase(storedBaseCurrency);
+    }
+    if (shouldPersistReminder) {
+      await _dependencies.setNotificationReminderOffsetUseCase(
+        reminderOption.storageValue,
+      );
     }
   }
 
@@ -104,6 +122,26 @@ class _SubctrlAppState extends State<SubctrlApp> {
       _isCurrencyRatesAutoDownloadEnabled = value;
     });
     unawaited(_dependencies.setCurrencyRatesAutoDownloadUseCase(value));
+  }
+
+  void _handleNotificationsPreferenceChanged(bool value) {
+    setState(() {
+      _areNotificationsEnabled = value;
+    });
+    unawaited(_dependencies.setNotificationsEnabledUseCase(value));
+  }
+
+  void _handleNotificationReminderChanged(
+    NotificationReminderOption option,
+  ) {
+    setState(() {
+      _notificationReminderOption = option;
+    });
+    unawaited(
+      _dependencies.setNotificationReminderOffsetUseCase(
+        option.storageValue,
+      ),
+    );
   }
 
   @override
@@ -140,6 +178,11 @@ class _SubctrlAppState extends State<SubctrlApp> {
         currencyRatesAutoDownloadEnabled: _isCurrencyRatesAutoDownloadEnabled,
         onCurrencyRatesAutoDownloadChanged:
             _handleCurrencyRatesAutoDownloadChanged,
+        notificationsEnabled: _areNotificationsEnabled,
+        onNotificationsPreferenceChanged:
+            _handleNotificationsPreferenceChanged,
+        notificationReminderOption: _notificationReminderOption,
+        onNotificationReminderChanged: _handleNotificationReminderChanged,
       ),
     );
   }
@@ -157,6 +200,10 @@ class HomeTabs extends StatelessWidget {
     required this.onBaseCurrencyChanged,
     required this.currencyRatesAutoDownloadEnabled,
     required this.onCurrencyRatesAutoDownloadChanged,
+    required this.notificationsEnabled,
+    required this.onNotificationsPreferenceChanged,
+    required this.notificationReminderOption,
+    required this.onNotificationReminderChanged,
   });
 
   final AppDependencies dependencies;
@@ -168,6 +215,10 @@ class HomeTabs extends StatelessWidget {
   final BaseCurrencyChangedCallback onBaseCurrencyChanged;
   final bool currencyRatesAutoDownloadEnabled;
   final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
+  final bool notificationsEnabled;
+  final ValueChanged<bool> onNotificationsPreferenceChanged;
+  final NotificationReminderOption notificationReminderOption;
+  final NotificationReminderChangedCallback onNotificationReminderChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +260,12 @@ class HomeTabs extends StatelessWidget {
                       currencyRatesAutoDownloadEnabled,
                   onCurrencyRatesAutoDownloadChanged:
                       onCurrencyRatesAutoDownloadChanged,
+                  notificationsEnabled: notificationsEnabled,
+                  onNotificationsPreferenceChanged:
+                      onNotificationsPreferenceChanged,
+                  notificationReminderOption: notificationReminderOption,
+                  onNotificationReminderChanged:
+                      onNotificationReminderChanged,
                 );
               case 1:
                 return const AnalyticsScreen();

@@ -4,6 +4,7 @@ import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/presentation/screens/settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 class SettingsSheet extends StatelessWidget {
@@ -18,6 +19,10 @@ class SettingsSheet extends StatelessWidget {
     required this.onBaseCurrencyChanged,
     required this.currencyRatesAutoDownloadEnabled,
     required this.onCurrencyRatesAutoDownloadChanged,
+    required this.notificationsEnabled,
+    required this.onNotificationsPreferenceChanged,
+    required this.notificationReminderOption,
+    required this.onNotificationReminderChanged,
   });
 
   final AppDependencies dependencies;
@@ -29,6 +34,10 @@ class SettingsSheet extends StatelessWidget {
   final BaseCurrencyChangedCallback onBaseCurrencyChanged;
   final bool currencyRatesAutoDownloadEnabled;
   final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
+  final bool notificationsEnabled;
+  final ValueChanged<bool> onNotificationsPreferenceChanged;
+  final NotificationReminderOption notificationReminderOption;
+  final NotificationReminderChangedCallback onNotificationReminderChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +90,15 @@ class SettingsSheet extends StatelessWidget {
                                 onBaseCurrencyChanged: onBaseCurrencyChanged,
                                 currencyRatesAutoDownloadEnabled:
                                     currencyRatesAutoDownloadEnabled,
-                                onCurrencyRatesAutoDownloadChanged:
-                                    onCurrencyRatesAutoDownloadChanged,
+                              onCurrencyRatesAutoDownloadChanged:
+                                  onCurrencyRatesAutoDownloadChanged,
+                              notificationsEnabled: notificationsEnabled,
+                              onNotificationsPreferenceChanged:
+                                  onNotificationsPreferenceChanged,
+                              notificationReminderOption:
+                                  notificationReminderOption,
+                              onNotificationReminderChanged:
+                                  onNotificationReminderChanged,
                                 onRequestClose: () =>
                                     Navigator.of(context).maybePop(),
                               ),
