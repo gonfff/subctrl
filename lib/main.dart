@@ -1,122 +1,280 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/screens/analytics_screen.dart';
+import 'package:subctrl/presentation/screens/subscriptions_screen.dart';
+import 'package:subctrl/presentation/theme/theme_preference.dart';
+import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const SubctrlApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class SubctrlApp extends StatefulWidget {
+  const SubctrlApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<SubctrlApp> createState() => _SubctrlAppState();
+}
+
+class _SubctrlAppState extends State<SubctrlApp> {
+  ThemePreference _themePreference = ThemePreference.system;
+  Locale? _locale;
+  String? _baseCurrencyCode =
+      'USD'; // Default value to avoid null during initialization
+  bool _isCurrencyRatesAutoDownloadEnabled = true;
+  bool _areNotificationsEnabled = false;
+  NotificationReminderOption _notificationReminderOption =
+      NotificationReminderOption.twoDaysBefore;
+  late final AppDependencies _dependencies;
+
+  @override
+  void initState() {
+    super.initState();
+    _dependencies = AppDependencies();
+    unawaited(_loadInitialSettings());
+  }
+
+  void _handleThemePreferenceChanged(ThemePreference preference) {
+    setState(() {
+      _themePreference = preference;
+    });
+    unawaited(_dependencies.setThemePreferenceUseCase(preference.name));
+  }
+
+  void _handleLocaleChanged(Locale? locale) {
+    setState(() {
+      _locale = locale;
+    });
+    unawaited(_dependencies.setLocaleCodeUseCase(locale?.languageCode));
+  }
+
+  Future<void> _loadInitialSettings() async {
+    final storedTheme = await _dependencies.getThemePreferenceUseCase();
+    final storedLocale = await _dependencies.getLocaleCodeUseCase();
+    var storedBaseCurrency = await _dependencies.getBaseCurrencyCodeUseCase();
+    final shouldDownloadRates = await _dependencies
+        .getCurrencyRatesAutoDownloadUseCase();
+    final shouldEnableNotifications =
+        await _dependencies.getNotificationsEnabledUseCase();
+    final storedReminder =
+        await _dependencies.getNotificationReminderOffsetUseCase();
+    final reminderOption =
+        NotificationReminderOption.fromStorage(storedReminder);
+    final shouldPersistReminder = storedReminder == null;
+
+    final themePreference = ThemePreference.values.firstWhere(
+      (value) => value.name == storedTheme,
+      orElse: () => ThemePreference.system,
+    );
+
+    Locale? locale;
+    if (storedLocale != null) {
+      locale = _resolveLocale(storedLocale);
+    }
+
+    final shouldPersistBaseCurrency = storedBaseCurrency == null;
+    storedBaseCurrency ??= 'USD';
+
+    if (!mounted) return;
+    setState(() {
+      _themePreference = themePreference;
+      _locale = locale;
+      _baseCurrencyCode = storedBaseCurrency;
+      _isCurrencyRatesAutoDownloadEnabled = shouldDownloadRates;
+      _areNotificationsEnabled = shouldEnableNotifications;
+      _notificationReminderOption = reminderOption;
+    });
+
+    if (shouldPersistBaseCurrency) {
+      await _dependencies.setBaseCurrencyCodeUseCase(storedBaseCurrency);
+    }
+    if (shouldPersistReminder) {
+      await _dependencies.setNotificationReminderOffsetUseCase(
+        reminderOption.storageValue,
+      );
+    }
+  }
+
+  Locale _resolveLocale(String code) {
+    try {
+      return AppLocalizations.supportedLocales.firstWhere(
+        (locale) => locale.languageCode == code,
+      );
+    } catch (_) {
+      return Locale(code);
+    }
+  }
+
+  Future<void> _handleBaseCurrencyChanged(String? code) async {
+    if (code == null) return;
+    setState(() {
+      _baseCurrencyCode = code;
+    });
+    await _dependencies.setBaseCurrencyCodeUseCase(code);
+  }
+
+  void _handleCurrencyRatesAutoDownloadChanged(bool value) {
+    setState(() {
+      _isCurrencyRatesAutoDownloadEnabled = value;
+    });
+    unawaited(_dependencies.setCurrencyRatesAutoDownloadUseCase(value));
+  }
+
+  void _handleNotificationsPreferenceChanged(bool value) {
+    setState(() {
+      _areNotificationsEnabled = value;
+    });
+    unawaited(_dependencies.setNotificationsEnabledUseCase(value));
+  }
+
+  void _handleNotificationReminderChanged(
+    NotificationReminderOption option,
+  ) {
+    setState(() {
+      _notificationReminderOption = option;
+    });
+    unawaited(
+      _dependencies.setNotificationReminderOffsetUseCase(
+        option.storageValue,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _dependencies.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+    final brightness = switch (_themePreference) {
+      ThemePreference.system => null,
+      ThemePreference.light => Brightness.light,
+      ThemePreference.dark => Brightness.dark,
+    };
+
+    return CupertinoApp(
+      debugShowCheckedModeBanner: false,
+      title: 'subctrl',
+      theme: brightness == null
+          ? null
+          : CupertinoThemeData(brightness: brightness),
+      locale: _locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: HomeTabs(
+        dependencies: _dependencies,
+        themePreference: _themePreference,
+        onThemePreferenceChanged: _handleThemePreferenceChanged,
+        selectedLocale: _locale,
+        onLocaleChanged: _handleLocaleChanged,
+        baseCurrencyCode: _baseCurrencyCode,
+        onBaseCurrencyChanged: _handleBaseCurrencyChanged,
+        currencyRatesAutoDownloadEnabled: _isCurrencyRatesAutoDownloadEnabled,
+        onCurrencyRatesAutoDownloadChanged:
+            _handleCurrencyRatesAutoDownloadChanged,
+        notificationsEnabled: _areNotificationsEnabled,
+        onNotificationsPreferenceChanged:
+            _handleNotificationsPreferenceChanged,
+        notificationReminderOption: _notificationReminderOption,
+        onNotificationReminderChanged: _handleNotificationReminderChanged,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class HomeTabs extends StatelessWidget {
+  const HomeTabs({
+    super.key,
+    required this.dependencies,
+    required this.themePreference,
+    required this.onThemePreferenceChanged,
+    required this.selectedLocale,
+    required this.onLocaleChanged,
+    required this.baseCurrencyCode,
+    required this.onBaseCurrencyChanged,
+    required this.currencyRatesAutoDownloadEnabled,
+    required this.onCurrencyRatesAutoDownloadChanged,
+    required this.notificationsEnabled,
+    required this.onNotificationsPreferenceChanged,
+    required this.notificationReminderOption,
+    required this.onNotificationReminderChanged,
+  });
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final AppDependencies dependencies;
+  final ThemePreference themePreference;
+  final ValueChanged<ThemePreference> onThemePreferenceChanged;
+  final Locale? selectedLocale;
+  final ValueChanged<Locale?> onLocaleChanged;
+  final String? baseCurrencyCode;
+  final BaseCurrencyChangedCallback onBaseCurrencyChanged;
+  final bool currencyRatesAutoDownloadEnabled;
+  final ValueChanged<bool> onCurrencyRatesAutoDownloadChanged;
+  final bool notificationsEnabled;
+  final ValueChanged<bool> onNotificationsPreferenceChanged;
+  final NotificationReminderOption notificationReminderOption;
+  final NotificationReminderChangedCallback onNotificationReminderChanged;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    final localizations = AppLocalizations.of(context);
+    final localeKey = selectedLocale?.languageCode ?? 'system';
+    final themeKey = themePreference.name;
+    final baseCurrencyKey = baseCurrencyCode ?? 'none';
+
+    return CupertinoTabScaffold(
+      tabBar: CupertinoTabBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.square_list),
+            label: localizations.subscriptionsTitle,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(CupertinoIcons.chart_bar),
+            label: localizations.analyticsTitle,
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      tabBuilder: (context, index) {
+        return CupertinoTabView(
+          key: index == 0
+              ? ValueKey('subscriptions-$themeKey-$localeKey-$baseCurrencyKey')
+              : null,
+          builder: (context) {
+            switch (index) {
+              case 0:
+                return SubscriptionsScreen(
+                  dependencies: dependencies,
+                  themePreference: themePreference,
+                  onThemePreferenceChanged: onThemePreferenceChanged,
+                  selectedLocale: selectedLocale,
+                  onLocaleChanged: onLocaleChanged,
+                  baseCurrencyCode: baseCurrencyCode,
+                  onBaseCurrencyChanged: onBaseCurrencyChanged,
+                  currencyRatesAutoDownloadEnabled:
+                      currencyRatesAutoDownloadEnabled,
+                  onCurrencyRatesAutoDownloadChanged:
+                      onCurrencyRatesAutoDownloadChanged,
+                  notificationsEnabled: notificationsEnabled,
+                  onNotificationsPreferenceChanged:
+                      onNotificationsPreferenceChanged,
+                  notificationReminderOption: notificationReminderOption,
+                  onNotificationReminderChanged:
+                      onNotificationReminderChanged,
+                );
+              case 1:
+                return const AnalyticsScreen();
+              default:
+                return const SizedBox.shrink();
+            }
+          },
+        );
+      },
     );
   }
 }
