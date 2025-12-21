@@ -226,6 +226,8 @@ class HomeTabs extends StatelessWidget {
     final localeKey = selectedLocale?.languageCode ?? 'system';
     final themeKey = themePreference.name;
     final baseCurrencyKey = baseCurrencyCode ?? 'none';
+    final notificationsKey = notificationsEnabled ? 'on' : 'off';
+    final reminderKey = notificationReminderOption.storageValue;
 
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
@@ -243,7 +245,10 @@ class HomeTabs extends StatelessWidget {
       tabBuilder: (context, index) {
         return CupertinoTabView(
           key: index == 0
-              ? ValueKey('subscriptions-$themeKey-$localeKey-$baseCurrencyKey')
+              ? ValueKey(
+                  'subscriptions-$themeKey-$localeKey-$baseCurrencyKey-'
+                  '$notificationsKey-$reminderKey',
+                )
               : null,
           builder: (context) {
             switch (index) {
