@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
-
+import 'package:flutter/widgets.dart';
 import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
 import 'package:subctrl/application/currencies/watch_currencies_use_case.dart';
 import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_case.dart';
@@ -16,9 +16,15 @@ import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.d
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
 import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/planned_notification.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/domain/services/currency_rates_provider.dart';
+import 'package:subctrl/domain/services/subscription_notification_planner.dart';
+import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
+import 'package:subctrl/presentation/formatters/date_formatter.dart';
+import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
 class SubscriptionsViewModel extends ChangeNotifier {
   SubscriptionsViewModel({
@@ -35,6 +41,10 @@ class SubscriptionsViewModel extends ChangeNotifier {
     required WatchTagsUseCase watchTagsUseCase,
     required String? initialBaseCurrencyCode,
     required bool initialAutoDownloadEnabled,
+    required LocalNotificationsService localNotificationsService,
+    required bool notificationsEnabled,
+    required NotificationReminderOption notificationReminderOption,
+    required Locale? initialLocale,
   }) : _watchSubscriptionsUseCase = watchSubscriptionsUseCase,
        _addSubscriptionUseCase = addSubscriptionUseCase,
        _updateSubscriptionUseCase = updateSubscriptionUseCase,
@@ -45,7 +55,11 @@ class SubscriptionsViewModel extends ChangeNotifier {
        _getCurrencyRatesUseCase = getCurrencyRatesUseCase,
        _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
        _fetchSubscriptionRatesUseCase = fetchSubscriptionRatesUseCase,
-       _watchTagsUseCase = watchTagsUseCase {
+       _watchTagsUseCase = watchTagsUseCase,
+       _localNotificationsService = localNotificationsService,
+       _notificationsEnabled = notificationsEnabled,
+       _notificationReminderOption = notificationReminderOption,
+       _locale = initialLocale {
     _baseCurrencyCode = initialBaseCurrencyCode?.toUpperCase();
     _autoDownloadEnabled = initialAutoDownloadEnabled;
     _listenToSubscriptions();
@@ -65,6 +79,11 @@ class SubscriptionsViewModel extends ChangeNotifier {
   final SaveCurrencyRatesUseCase _saveCurrencyRatesUseCase;
   final FetchSubscriptionRatesUseCase _fetchSubscriptionRatesUseCase;
   final WatchTagsUseCase _watchTagsUseCase;
+  final LocalNotificationsService _localNotificationsService;
+
+  bool _notificationsEnabled;
+  NotificationReminderOption _notificationReminderOption;
+  Locale? _locale;
 
   StreamSubscription<List<Subscription>>? _subscriptionsSubscription;
   StreamSubscription<List<Tag>>? _tagsSubscription;
@@ -75,6 +94,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
   bool _isLoadingCurrencies = true;
   bool _isFetchingRates = false;
   bool _autoDownloadEnabled = true;
+  bool _isSyncingNotifications = false;
 
   List<Subscription> _subscriptions = const [];
   List<Tag> _tags = const [];
@@ -150,6 +170,23 @@ class SubscriptionsViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateNotificationPreferences({
+    required bool notificationsEnabled,
+    required NotificationReminderOption reminderOption,
+    required Locale? locale,
+  }) {
+    final shouldSync =
+        _notificationsEnabled != notificationsEnabled ||
+        _notificationReminderOption != reminderOption ||
+        _locale != locale;
+    _notificationsEnabled = notificationsEnabled;
+    _notificationReminderOption = reminderOption;
+    _locale = locale;
+    if (shouldSync) {
+      unawaited(_syncNotifications());
+    }
+  }
+
   Future<void> addSubscription(Subscription subscription) {
     return _addSubscriptionUseCase(subscription);
   }
@@ -190,6 +227,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
       if (_autoDownloadEnabled) {
         unawaited(_refreshCurrencyRatesForSubscriptions());
       }
+      unawaited(_syncNotifications());
     });
   }
 
@@ -293,7 +331,87 @@ class SubscriptionsViewModel extends ChangeNotifier {
     super.dispose();
   }
 
+  Future<void> _syncNotifications() async {
+    if (_isSyncingNotifications) return;
+    _isSyncingNotifications = true;
+    try {
+      final resolvedLocale =
+          _locale ?? WidgetsBinding.instance.platformDispatcher.locale;
+      _log(
+        'Syncing notifications (enabled: $_notificationsEnabled, reminder: '
+        '$_notificationReminderOption, locale: ${resolvedLocale.toLanguageTag()})',
+      );
+      final pending = await _localNotificationsService
+          .pendingNotificationRequests();
+      final managedIds = pending
+          .where((request) {
+            return SubscriptionNotificationPlanner.isManagedNotificationId(
+              request.id,
+            );
+          })
+          .map((request) => request.id)
+          .toList(growable: false);
+      _log(
+        'Found ${pending.length} pending notifications, '
+        '${managedIds.length} managed by subctrl',
+      );
+      if (!_notificationsEnabled) {
+        _log('Notifications disabled, canceling managed notifications');
+        await _localNotificationsService.cancelNotifications(managedIds);
+        return;
+      }
+      final localizations = AppLocalizations(resolvedLocale);
+      final planner = SubscriptionNotificationPlanner();
+      final planned = planner.plan(
+        subscriptions: _subscriptions,
+        reminderOption: _notificationReminderOption,
+      );
+      await _localNotificationsService.cancelNotifications(managedIds);
+      if (planned.isEmpty) {
+        _log('Planner returned no notifications to schedule');
+        return;
+      }
+      _log('Planner returned ${planned.length} notifications');
+      final subscriptionMap = {
+        for (final subscription in _subscriptions)
+          if (subscription.id != null) subscription.id!: subscription,
+      };
+      final notifications = planned
+          .map((item) {
+            final subscription = subscriptionMap[item.subscriptionId];
+            if (subscription == null) return null;
+            final formattedDate = formatDate(item.paymentDate, resolvedLocale);
+            return PlannedNotification(
+              id: item.notificationId,
+              title: localizations.notificationReminderTitle,
+              body: localizations.notificationReminderBody(
+                subscription.name,
+                formattedDate,
+              ),
+              scheduledDate: item.scheduledDate,
+              payload:
+                  'subctrl:subscription:${item.subscriptionId}:${item.index}'
+                  ':${item.paymentDate.toIso8601String()}',
+            );
+          })
+          .whereType<PlannedNotification>()
+          .toList(growable: false);
+      _log('Scheduling ${notifications.length} notifications');
+      await _localNotificationsService.scheduleNotifications(notifications);
+    } catch (error, stackTrace) {
+      _log(
+        'Failed to sync subscription notifications',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _isSyncingNotifications = false;
+    }
+  }
+
   void _log(String message, {Object? error, StackTrace? stackTrace}) {
+    if (!kDebugMode) return;
+    debugPrint('[SubscriptionsViewModel] $message');
     developer.log(
       message,
       name: 'SubscriptionsViewModel',

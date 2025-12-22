@@ -115,9 +115,19 @@ extension BillingCycleX on BillingCycle {
   DateTime nextPaymentDate(DateTime startDate, [DateTime? reference]) {
     final anchor = reference ?? DateTime.now();
     var candidate = addTo(startDate);
-    while (!candidate.isAfter(anchor)) {
+    while (isBeforeDay(candidate, anchor)) {
       candidate = addTo(candidate);
     }
     return candidate;
   }
+}
+
+bool isBeforeDay(DateTime value, DateTime compareTo) {
+  if (value.year != compareTo.year) {
+    return value.year < compareTo.year;
+  }
+  if (value.month != compareTo.month) {
+    return value.month < compareTo.month;
+  }
+  return value.day < compareTo.day;
 }

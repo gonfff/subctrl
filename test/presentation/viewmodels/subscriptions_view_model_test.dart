@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
@@ -15,8 +16,11 @@ import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.d
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
 import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/planned_notification.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/entities/tag.dart';
+import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 
 class _MockWatchSubscriptionsUseCase extends Mock
@@ -50,6 +54,9 @@ class _MockFetchSubscriptionRatesUseCase extends Mock
 
 class _MockWatchTagsUseCase extends Mock implements WatchTagsUseCase {}
 
+class _MockLocalNotificationsService extends Mock
+    implements LocalNotificationsService {}
+
 void main() {
   setUpAll(() {
     registerFallbackValue(
@@ -61,6 +68,8 @@ void main() {
         purchaseDate: DateTime(2024, 1, 1),
       ),
     );
+    registerFallbackValue(<PlannedNotification>[]);
+    registerFallbackValue(<int>[]);
   });
 
   late _MockWatchSubscriptionsUseCase watchSubscriptionsUseCase;
@@ -74,6 +83,7 @@ void main() {
   late _MockSaveCurrencyRatesUseCase saveCurrencyRatesUseCase;
   late _MockFetchSubscriptionRatesUseCase fetchSubscriptionRatesUseCase;
   late _MockWatchTagsUseCase watchTagsUseCase;
+  late _MockLocalNotificationsService localNotificationsService;
 
   late StreamController<List<Subscription>> subscriptionsController;
   late StreamController<List<Tag>> tagsController;
@@ -93,6 +103,7 @@ void main() {
     saveCurrencyRatesUseCase = _MockSaveCurrencyRatesUseCase();
     fetchSubscriptionRatesUseCase = _MockFetchSubscriptionRatesUseCase();
     watchTagsUseCase = _MockWatchTagsUseCase();
+    localNotificationsService = _MockLocalNotificationsService();
 
     subscriptionsController = StreamController<List<Subscription>>.broadcast();
     tagsController = StreamController<List<Tag>>.broadcast();
@@ -113,6 +124,15 @@ void main() {
     when(
       () => getCurrencyRatesUseCase(any()),
     ).thenAnswer((_) async => const []);
+    when(
+      () => localNotificationsService.pendingNotificationRequests(),
+    ).thenAnswer((_) async => const []);
+    when(
+      () => localNotificationsService.cancelNotifications(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => localNotificationsService.scheduleNotifications(any()),
+    ).thenAnswer((_) async {});
     when(
       () => saveCurrencyRatesUseCase(
         baseCurrencyCode: any(named: 'baseCurrencyCode'),
@@ -143,6 +163,10 @@ void main() {
       watchTagsUseCase: watchTagsUseCase,
       initialBaseCurrencyCode: 'USD',
       initialAutoDownloadEnabled: false,
+      localNotificationsService: localNotificationsService,
+      notificationsEnabled: false,
+      notificationReminderOption: NotificationReminderOption.sameDay,
+      initialLocale: const Locale('en'),
     );
   });
 
@@ -292,6 +316,10 @@ void main() {
       watchTagsUseCase: watchTagsUseCase,
       initialBaseCurrencyCode: 'USD',
       initialAutoDownloadEnabled: true,
+      localNotificationsService: localNotificationsService,
+      notificationsEnabled: false,
+      notificationReminderOption: NotificationReminderOption.sameDay,
+      initialLocale: const Locale('en'),
     );
     final subscription = Subscription(
       name: 'Apple TV',

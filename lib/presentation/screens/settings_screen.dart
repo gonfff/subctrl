@@ -13,7 +13,7 @@ import 'package:subctrl/presentation/screens/support_screen.dart';
 import 'package:subctrl/presentation/screens/tag_settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/settings_view_model.dart';
 import 'package:subctrl/presentation/widgets/currency_picker.dart';
@@ -322,7 +322,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _handleNotificationsToggleChanged(bool value) async {
     if (value) {
       final status = await _notificationPermissionService.requestPermission();
-      final isGranted = status == NotificationPermissionStatus.authorized ||
+      final isGranted =
+          status == NotificationPermissionStatus.authorized ||
           status == NotificationPermissionStatus.provisional ||
           status == NotificationPermissionStatus.ephemeral;
       _applyNotificationsPreference(isGranted);
@@ -380,9 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               CupertinoActionSheetAction(
                 onPressed: () => Navigator.of(context).pop(option),
                 isDefaultAction: option == _notificationReminderOption,
-                child: Text(
-                  _notificationReminderLabel(localizations, option),
-                ),
+                child: Text(_notificationReminderLabel(localizations, option)),
               ),
           ],
           cancelButton: CupertinoActionSheetAction(
@@ -396,9 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _handleNotificationReminderChanged(selected);
   }
 
-  void _handleNotificationReminderChanged(
-    NotificationReminderOption option,
-  ) {
+  void _handleNotificationReminderChanged(NotificationReminderOption option) {
     setState(() {
       _notificationReminderOption = option;
     });
@@ -466,8 +463,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             !_viewModel.isLoading &&
             baseCurrencyLabel != localizations.settingsBaseCurrencyUnset;
         final mediaPadding = MediaQuery.paddingOf(context);
-        final reminderLabel =
-            _notificationReminderLabel(localizations, _notificationReminderOption);
+        final reminderLabel = _notificationReminderLabel(
+          localizations,
+          _notificationReminderOption,
+        );
         final reminderValue = _notificationsEnabled
             ? reminderLabel
             : localizations.settingsNotificationsStatusOff;

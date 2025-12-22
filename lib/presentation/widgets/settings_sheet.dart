@@ -4,7 +4,7 @@ import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/presentation/screens/settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 class SettingsSheet extends StatelessWidget {
@@ -90,15 +90,15 @@ class SettingsSheet extends StatelessWidget {
                                 onBaseCurrencyChanged: onBaseCurrencyChanged,
                                 currencyRatesAutoDownloadEnabled:
                                     currencyRatesAutoDownloadEnabled,
-                              onCurrencyRatesAutoDownloadChanged:
-                                  onCurrencyRatesAutoDownloadChanged,
-                              notificationsEnabled: notificationsEnabled,
-                              onNotificationsPreferenceChanged:
-                                  onNotificationsPreferenceChanged,
-                              notificationReminderOption:
-                                  notificationReminderOption,
-                              onNotificationReminderChanged:
-                                  onNotificationReminderChanged,
+                                onCurrencyRatesAutoDownloadChanged:
+                                    onCurrencyRatesAutoDownloadChanged,
+                                notificationsEnabled: notificationsEnabled,
+                                onNotificationsPreferenceChanged:
+                                    onNotificationsPreferenceChanged,
+                                notificationReminderOption:
+                                    notificationReminderOption,
+                                onNotificationReminderChanged:
+                                    onNotificationReminderChanged,
                                 onRequestClose: () =>
                                     Navigator.of(context).maybePop(),
                               ),
