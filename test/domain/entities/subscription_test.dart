@@ -71,7 +71,17 @@ void main() {
     final purchase = DateTime(2024, 1, 1);
     final reference = DateTime(2024, 3, 1);
     final nextDate = BillingCycle.monthly.nextPaymentDate(purchase, reference);
-    expect(nextDate.isAfter(reference), isTrue);
+    final sameDay = nextDate.year == reference.year &&
+        nextDate.month == reference.month &&
+        nextDate.day == reference.day;
+    expect(nextDate.isAfter(reference) || sameDay, isTrue);
+  });
+
+  test('BillingCycleX nextPaymentDate keeps current day when reference is later', () {
+    final purchase = DateTime(2024, 1, 5);
+    final reference = DateTime(2024, 2, 5, 20);
+    final nextDate = BillingCycle.monthly.nextPaymentDate(purchase, reference);
+    expect(nextDate, DateTime(2024, 2, 5));
   });
 
   test('BillingCycleX nextPaymentDate defaults to now when no reference', () {

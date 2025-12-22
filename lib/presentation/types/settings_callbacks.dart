@@ -1,4 +1,4 @@
-import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 
 typedef BaseCurrencyChangedCallback = Future<void> Function(String? code);
 

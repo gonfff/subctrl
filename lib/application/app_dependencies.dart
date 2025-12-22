@@ -36,6 +36,7 @@ import 'package:subctrl/infrastructure/persistence/daos/settings_dao.dart';
 import 'package:subctrl/infrastructure/persistence/daos/subscriptions_dao.dart';
 import 'package:subctrl/infrastructure/persistence/daos/tags_dao.dart';
 import 'package:subctrl/infrastructure/persistence/database.dart';
+import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_rate_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_settings_repository.dart';
@@ -74,6 +75,7 @@ class AppDependencies {
     required this.setNotificationsEnabledUseCase,
     required this.getNotificationReminderOffsetUseCase,
     required this.setNotificationReminderOffsetUseCase,
+    required this.localNotificationsService,
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
   }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
 
@@ -84,9 +86,13 @@ class AppDependencies {
     final currencyRatesDao = CurrencyRatesDao(database);
     final tagsDao = TagsDao(database);
     final settingsDao = SettingsDao(database);
-    final subscriptionRepository = DriftSubscriptionRepository(subscriptionsDao);
+    final subscriptionRepository = DriftSubscriptionRepository(
+      subscriptionsDao,
+    );
     final currencyRepository = DriftCurrencyRepository(currenciesDao);
-    final currencyRateRepository = DriftCurrencyRateRepository(currencyRatesDao);
+    final currencyRateRepository = DriftCurrencyRateRepository(
+      currencyRatesDao,
+    );
     final tagRepository = DriftTagRepository(tagsDao);
     final settingsRepository = DriftSettingsRepository(settingsDao);
     final yahooFinanceClient = YahooFinanceCurrencyClient();
@@ -94,6 +100,7 @@ class AppDependencies {
       yahooFinanceCurrencyClient: yahooFinanceClient,
       currencyRepository: currencyRepository,
     );
+    final localNotificationsService = LocalNotificationsService();
 
     return AppDependencies._(
       watchSubscriptionsUseCase: WatchSubscriptionsUseCase(
@@ -156,6 +163,7 @@ class AppDependencies {
           GetNotificationReminderOffsetUseCase(settingsRepository),
       setNotificationReminderOffsetUseCase:
           SetNotificationReminderOffsetUseCase(settingsRepository),
+      localNotificationsService: localNotificationsService,
       yahooFinanceCurrencyClient: yahooFinanceClient,
     );
   }
@@ -193,9 +201,10 @@ class AppDependencies {
   final GetNotificationsEnabledUseCase getNotificationsEnabledUseCase;
   final SetNotificationsEnabledUseCase setNotificationsEnabledUseCase;
   final GetNotificationReminderOffsetUseCase
-      getNotificationReminderOffsetUseCase;
+  getNotificationReminderOffsetUseCase;
   final SetNotificationReminderOffsetUseCase
-      setNotificationReminderOffsetUseCase;
+  setNotificationReminderOffsetUseCase;
+  final LocalNotificationsService localNotificationsService;
 
   final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
 

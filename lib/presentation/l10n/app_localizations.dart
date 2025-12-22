@@ -29,7 +29,8 @@ class AppLocalizations {
       'settingsThemeSection': 'Theme',
       'settingsLanguageSection': 'Language',
       'settingsNotificationsLabel': 'Notifications',
-      'settingsNotificationsPermissionDenied': 'Notifications permission was denied. Enable it in system settings.',
+      'settingsNotificationsPermissionDenied':
+          'Notifications permission was denied. Enable it in system settings.',
       'settingsNotificationsOpenSettings': 'Open settings',
       'settingsNotificationsTitle': 'Notifications',
       'settingsNotificationsStatusOn': 'Enabled',
@@ -39,6 +40,8 @@ class AppLocalizations {
       'settingsNotificationsTwoDaysBefore': '2 days before payment',
       'settingsNotificationsDayBefore': '1 day before payment',
       'settingsNotificationsSameDay': 'On payment day',
+      'notificationReminderTitle': 'Subscription renewal',
+      'notificationReminderBody': '{name} will renew on {date}',
       'settingsCurrenciesSection': 'Currencies',
       'settingsCurrenciesManage': 'Manage currencies',
       'settingsTagsSection': 'Tags',
@@ -153,7 +156,8 @@ class AppLocalizations {
       'settingsThemeSection': 'Тема',
       'settingsLanguageSection': 'Язык',
       'settingsNotificationsLabel': 'Уведомления',
-      'settingsNotificationsPermissionDenied': 'Доступ к уведомлениям запрещён. Разрешите его в настройках телефона.',
+      'settingsNotificationsPermissionDenied':
+          'Доступ к уведомлениям запрещён. Разрешите его в настройках телефона.',
       'settingsNotificationsOpenSettings': 'Открыть настройки',
       'settingsNotificationsTitle': 'Уведомления',
       'settingsNotificationsStatusOn': 'Включены',
@@ -163,6 +167,8 @@ class AppLocalizations {
       'settingsNotificationsTwoDaysBefore': 'За 2 дня до платежа',
       'settingsNotificationsDayBefore': 'За день до платежа',
       'settingsNotificationsSameDay': 'В день платежа',
+      'notificationReminderTitle': 'Напоминание о подписке',
+      'notificationReminderBody': '{name} — будет продлена {date}',
       'settingsCurrenciesSection': 'Валюты',
       'settingsCurrenciesManage': 'Управление списком',
       'settingsTagsSection': 'Теги',
@@ -312,6 +318,13 @@ class AppLocalizations {
       _strings['settingsNotificationsDayBefore']!;
   String get settingsNotificationsSameDay =>
       _strings['settingsNotificationsSameDay']!;
+  String get notificationReminderTitle =>
+      _strings['notificationReminderTitle']!;
+  String notificationReminderBody(String name, String date) {
+    final template = _strings['notificationReminderBody']!;
+    return template.replaceAll('{name}', name).replaceAll('{date}', date);
+  }
+
   String get settingsCurrenciesSection =>
       _strings['settingsCurrenciesSection']!;
   String get settingsCurrenciesManage => _strings['settingsCurrenciesManage']!;

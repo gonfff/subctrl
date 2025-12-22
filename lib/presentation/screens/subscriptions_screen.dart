@@ -5,7 +5,7 @@ import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 import 'package:subctrl/presentation/widgets/add_subscription_sheet.dart';
@@ -73,6 +73,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       watchTagsUseCase: widget.dependencies.watchTagsUseCase,
       initialBaseCurrencyCode: widget.baseCurrencyCode,
       initialAutoDownloadEnabled: widget.currencyRatesAutoDownloadEnabled,
+      localNotificationsService: widget.dependencies.localNotificationsService,
+      notificationsEnabled: widget.notificationsEnabled,
+      notificationReminderOption: widget.notificationReminderOption,
+      initialLocale: widget.selectedLocale,
     );
     _searchController.addListener(() {
       _viewModel.setSearchQuery(_searchController.text);
@@ -97,6 +101,16 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         widget.currencyRatesAutoDownloadEnabled) {
       _viewModel.updateAutoDownloadEnabled(
         widget.currencyRatesAutoDownloadEnabled,
+      );
+    }
+    if (oldWidget.notificationsEnabled != widget.notificationsEnabled ||
+        oldWidget.notificationReminderOption !=
+            widget.notificationReminderOption ||
+        oldWidget.selectedLocale != widget.selectedLocale) {
+      _viewModel.updateNotificationPreferences(
+        notificationsEnabled: widget.notificationsEnabled,
+        reminderOption: widget.notificationReminderOption,
+        locale: widget.selectedLocale,
       );
     }
   }
@@ -225,25 +239,24 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     await showCupertinoModalPopup<void>(
       context: context,
       barrierColor: CupertinoColors.black.withValues(alpha: 0.45),
-          builder: (context) {
-            return SettingsSheet(
-              dependencies: widget.dependencies,
-              themePreference: widget.themePreference,
-              onThemePreferenceChanged: widget.onThemePreferenceChanged,
-              selectedLocale: widget.selectedLocale,
-              onLocaleChanged: widget.onLocaleChanged,
-              baseCurrencyCode: widget.baseCurrencyCode,
-              onBaseCurrencyChanged: widget.onBaseCurrencyChanged,
-              currencyRatesAutoDownloadEnabled: _viewModel.autoDownloadEnabled,
-              onCurrencyRatesAutoDownloadChanged:
-                  _handleCurrencyRatesAutoDownloadPreferenceChanged,
-              notificationsEnabled: widget.notificationsEnabled,
-              onNotificationsPreferenceChanged:
-                  widget.onNotificationsPreferenceChanged,
-              notificationReminderOption: widget.notificationReminderOption,
-              onNotificationReminderChanged:
-                  widget.onNotificationReminderChanged,
-            );
+      builder: (context) {
+        return SettingsSheet(
+          dependencies: widget.dependencies,
+          themePreference: widget.themePreference,
+          onThemePreferenceChanged: widget.onThemePreferenceChanged,
+          selectedLocale: widget.selectedLocale,
+          onLocaleChanged: widget.onLocaleChanged,
+          baseCurrencyCode: widget.baseCurrencyCode,
+          onBaseCurrencyChanged: widget.onBaseCurrencyChanged,
+          currencyRatesAutoDownloadEnabled: _viewModel.autoDownloadEnabled,
+          onCurrencyRatesAutoDownloadChanged:
+              _handleCurrencyRatesAutoDownloadPreferenceChanged,
+          notificationsEnabled: widget.notificationsEnabled,
+          onNotificationsPreferenceChanged:
+              widget.onNotificationsPreferenceChanged,
+          notificationReminderOption: widget.notificationReminderOption,
+          onNotificationReminderChanged: widget.onNotificationReminderChanged,
+        );
       },
     );
   }

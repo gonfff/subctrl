@@ -6,7 +6,7 @@ import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/analytics_screen.dart';
 import 'package:subctrl/presentation/screens/subscriptions_screen.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/presentation/types/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 void main() {
@@ -58,12 +58,13 @@ class _SubctrlAppState extends State<SubctrlApp> {
     var storedBaseCurrency = await _dependencies.getBaseCurrencyCodeUseCase();
     final shouldDownloadRates = await _dependencies
         .getCurrencyRatesAutoDownloadUseCase();
-    final shouldEnableNotifications =
-        await _dependencies.getNotificationsEnabledUseCase();
-    final storedReminder =
-        await _dependencies.getNotificationReminderOffsetUseCase();
-    final reminderOption =
-        NotificationReminderOption.fromStorage(storedReminder);
+    final shouldEnableNotifications = await _dependencies
+        .getNotificationsEnabledUseCase();
+    final storedReminder = await _dependencies
+        .getNotificationReminderOffsetUseCase();
+    final reminderOption = NotificationReminderOption.fromStorage(
+      storedReminder,
+    );
     final shouldPersistReminder = storedReminder == null;
 
     final themePreference = ThemePreference.values.firstWhere(
@@ -131,16 +132,12 @@ class _SubctrlAppState extends State<SubctrlApp> {
     unawaited(_dependencies.setNotificationsEnabledUseCase(value));
   }
 
-  void _handleNotificationReminderChanged(
-    NotificationReminderOption option,
-  ) {
+  void _handleNotificationReminderChanged(NotificationReminderOption option) {
     setState(() {
       _notificationReminderOption = option;
     });
     unawaited(
-      _dependencies.setNotificationReminderOffsetUseCase(
-        option.storageValue,
-      ),
+      _dependencies.setNotificationReminderOffsetUseCase(option.storageValue),
     );
   }
 
@@ -179,8 +176,7 @@ class _SubctrlAppState extends State<SubctrlApp> {
         onCurrencyRatesAutoDownloadChanged:
             _handleCurrencyRatesAutoDownloadChanged,
         notificationsEnabled: _areNotificationsEnabled,
-        onNotificationsPreferenceChanged:
-            _handleNotificationsPreferenceChanged,
+        onNotificationsPreferenceChanged: _handleNotificationsPreferenceChanged,
         notificationReminderOption: _notificationReminderOption,
         onNotificationReminderChanged: _handleNotificationReminderChanged,
       ),
@@ -269,8 +265,7 @@ class HomeTabs extends StatelessWidget {
                   onNotificationsPreferenceChanged:
                       onNotificationsPreferenceChanged,
                   notificationReminderOption: notificationReminderOption,
-                  onNotificationReminderChanged:
-                      onNotificationReminderChanged,
+                  onNotificationReminderChanged: onNotificationReminderChanged,
                 );
               case 1:
                 return const AnalyticsScreen();
