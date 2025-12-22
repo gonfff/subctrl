@@ -107,8 +107,7 @@ class YahooFinanceCurrencyClient {
         return const [];
       }
       final symbolMap = <String, String>{
-        for (final quote in normalizedQuotes)
-          '${quote}${normalizedBase}=X': quote,
+        for (final quote in normalizedQuotes) '$quote$normalizedBase=X': quote,
       };
       _log('Symbol map: $symbolMap');
 

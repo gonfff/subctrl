@@ -74,7 +74,7 @@ void main() {
   });
 
   test('exposes currencies emitted by the watch use case', () async {
-    final usd = Currency(
+    final usd = const Currency(
       code: 'USD',
       name: 'US Dollar',
       symbol: r'$',

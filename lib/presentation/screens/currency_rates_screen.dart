@@ -246,7 +246,6 @@ class _CurrencyRateRow extends StatelessWidget {
             child: CupertinoButton(
               onPressed: onDelete,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              minSize: 0,
               child: Text(
                 localizations.deleteAction,
                 style: textTheme.copyWith(
@@ -255,6 +254,7 @@ class _CurrencyRateRow extends StatelessWidget {
                   color: deleteColor,
                 ),
               ),
+              minimumSize: Size(0, 0),
             ),
           ),
         ],
