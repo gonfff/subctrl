@@ -37,9 +37,9 @@ Dependencies must be actively maintained, justified, and easy to drop when requi
 
 ### Dependency rule (strict)
 
-Presentation → Application → Domain  
-Presentation → Infrastructure  
-Application → Infrastructure  
+Presentation → Application → Domain
+Presentation → Infrastructure
+Application → Infrastructure
 
 ### Layer responsibilities
 
@@ -62,7 +62,7 @@ Application → Infrastructure
 - Key entities: `Subscription` + `BillingCycle` (auto-calculates `nextPaymentDate`), `Currency`, `CurrencyRate`, `Tag`.
 - Repository interfaces (subscriptions, currencies, settings, currency rates, tags) describe streams and CRUD operations without mentioning Flutter or persistence.
 - `CurrencyRatesProvider` (`domain/services`) abstracts rate fetching logic; `FetchSubscriptionRatesUseCase` depends on it rather than Firebase/HTTP details.
- 
+
 #### Infrastructure
 
 - Houses everything that touches Drift, HTTP, or platform APIs (`lib/infrastructure/*`).
@@ -177,13 +177,6 @@ Rules:
 - `test/presentation/viewmodels` covers ViewModel logic (`subscriptions_view_model_test.dart`, `currency_rates_view_model_test.dart`, etc.) using `mocktail` to stub use cases and ensure state transitions are explicit.
 - Use `mocktail` to stub interfaces, prefer synchronous expectations, and avoid hitting real network or Drift databases in ViewModel/unit tests. Infrastructure tests may mock HTTP responses.
 - `build_runner` + `drift_dev` must be run when schema/tables change to regenerate `database.g.dart`; keep generated files checked in (`lib/infrastructure/persistence/database.g.dart`).
-
-## Version Control
-
----
-
-- Keep commits small and focused, with descriptive messages that explain the why as well as the what.
-- Do not commit directly to protected branches. Prefer rebasing over merging when syncing with upstream.
 
 ## Documentation
 
