@@ -3,8 +3,9 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:subctrl/domain/entities/pending_notification.dart';
 import 'package:subctrl/domain/entities/planned_notification.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 class LocalNotificationsService {
@@ -17,18 +18,31 @@ class LocalNotificationsService {
   Future<void> initialize() async {
     if (_initialized) return;
     await _configureTimeZones();
-    const darwinSettings = DarwinInitializationSettings();
+    const darwinSettings = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     const settings = InitializationSettings(iOS: darwinSettings);
     await _plugin.initialize(settings);
     _initialized = true;
     _log('Initialized local notifications');
   }
 
-  Future<List<PendingNotificationRequest>> pendingNotificationRequests() async {
+  Future<List<PendingNotification>> pendingNotificationRequests() async {
     await initialize();
     final pending = await _plugin.pendingNotificationRequests();
     _log('Loaded pending notifications: ${pending.length}');
-    return pending;
+    return pending
+        .map(
+          (request) => PendingNotification(
+            id: request.id,
+            title: request.title,
+            body: request.body,
+            payload: request.payload,
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<void> cancelNotifications(Iterable<int> ids) async {
@@ -74,7 +88,7 @@ class LocalNotificationsService {
   }
 
   Future<void> _configureTimeZones() async {
-    tz.initializeTimeZones();
+    tz_data.initializeTimeZones();
     try {
       final timezone = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timezone));

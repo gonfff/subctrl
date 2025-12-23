@@ -9,6 +9,9 @@ import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_
 import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/application/notifications/cancel_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/get_pending_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/schedule_notifications_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
@@ -18,11 +21,11 @@ import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/currency_rate.dart';
 import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/planned_notification.dart';
+import 'package:subctrl/domain/entities/pending_notification.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/domain/services/currency_rates_provider.dart';
 import 'package:subctrl/domain/services/subscription_notification_planner.dart';
-import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
 import 'package:subctrl/presentation/formatters/date_formatter.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 
@@ -41,7 +44,9 @@ class SubscriptionsViewModel extends ChangeNotifier {
     required WatchTagsUseCase watchTagsUseCase,
     required String? initialBaseCurrencyCode,
     required bool initialAutoDownloadEnabled,
-    required LocalNotificationsService localNotificationsService,
+    required GetPendingNotificationsUseCase getPendingNotificationsUseCase,
+    required CancelNotificationsUseCase cancelNotificationsUseCase,
+    required ScheduleNotificationsUseCase scheduleNotificationsUseCase,
     required bool notificationsEnabled,
     required NotificationReminderOption notificationReminderOption,
     required Locale? initialLocale,
@@ -56,7 +61,9 @@ class SubscriptionsViewModel extends ChangeNotifier {
        _saveCurrencyRatesUseCase = saveCurrencyRatesUseCase,
        _fetchSubscriptionRatesUseCase = fetchSubscriptionRatesUseCase,
        _watchTagsUseCase = watchTagsUseCase,
-       _localNotificationsService = localNotificationsService,
+       _getPendingNotificationsUseCase = getPendingNotificationsUseCase,
+       _cancelNotificationsUseCase = cancelNotificationsUseCase,
+       _scheduleNotificationsUseCase = scheduleNotificationsUseCase,
        _notificationsEnabled = notificationsEnabled,
        _notificationReminderOption = notificationReminderOption,
        _locale = initialLocale {
@@ -79,7 +86,9 @@ class SubscriptionsViewModel extends ChangeNotifier {
   final SaveCurrencyRatesUseCase _saveCurrencyRatesUseCase;
   final FetchSubscriptionRatesUseCase _fetchSubscriptionRatesUseCase;
   final WatchTagsUseCase _watchTagsUseCase;
-  final LocalNotificationsService _localNotificationsService;
+  final GetPendingNotificationsUseCase _getPendingNotificationsUseCase;
+  final CancelNotificationsUseCase _cancelNotificationsUseCase;
+  final ScheduleNotificationsUseCase _scheduleNotificationsUseCase;
 
   bool _notificationsEnabled;
   NotificationReminderOption _notificationReminderOption;
@@ -341,8 +350,8 @@ class SubscriptionsViewModel extends ChangeNotifier {
         'Syncing notifications (enabled: $_notificationsEnabled, reminder: '
         '$_notificationReminderOption, locale: ${resolvedLocale.toLanguageTag()})',
       );
-      final pending = await _localNotificationsService
-          .pendingNotificationRequests();
+      final List<PendingNotification> pending =
+          await _getPendingNotificationsUseCase();
       final managedIds = pending
           .where((request) {
             return SubscriptionNotificationPlanner.isManagedNotificationId(
@@ -357,7 +366,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
       );
       if (!_notificationsEnabled) {
         _log('Notifications disabled, canceling managed notifications');
-        await _localNotificationsService.cancelNotifications(managedIds);
+        await _cancelNotificationsUseCase(managedIds);
         return;
       }
       final localizations = AppLocalizations(resolvedLocale);
@@ -366,7 +375,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
         subscriptions: _subscriptions,
         reminderOption: _notificationReminderOption,
       );
-      await _localNotificationsService.cancelNotifications(managedIds);
+      await _cancelNotificationsUseCase(managedIds);
       if (planned.isEmpty) {
         _log('Planner returned no notifications to schedule');
         return;
@@ -397,7 +406,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
           .whereType<PlannedNotification>()
           .toList(growable: false);
       _log('Scheduling ${notifications.length} notifications');
-      await _localNotificationsService.scheduleNotifications(notifications);
+      await _scheduleNotificationsUseCase(notifications);
     } catch (error, stackTrace) {
       _log(
         'Failed to sync subscription notifications',

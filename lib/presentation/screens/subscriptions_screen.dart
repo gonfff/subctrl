@@ -73,7 +73,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       watchTagsUseCase: widget.dependencies.watchTagsUseCase,
       initialBaseCurrencyCode: widget.baseCurrencyCode,
       initialAutoDownloadEnabled: widget.currencyRatesAutoDownloadEnabled,
-      localNotificationsService: widget.dependencies.localNotificationsService,
+      getPendingNotificationsUseCase:
+          widget.dependencies.getPendingNotificationsUseCase,
+      cancelNotificationsUseCase:
+          widget.dependencies.cancelNotificationsUseCase,
+      scheduleNotificationsUseCase:
+          widget.dependencies.scheduleNotificationsUseCase,
       notificationsEnabled: widget.notificationsEnabled,
       notificationReminderOption: widget.notificationReminderOption,
       initialLocale: widget.selectedLocale,
