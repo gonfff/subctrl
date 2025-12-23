@@ -8,6 +8,11 @@ import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_
 import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/application/notifications/cancel_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/get_pending_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/open_notification_settings_use_case.dart';
+import 'package:subctrl/application/notifications/request_notification_permission_use_case.dart';
+import 'package:subctrl/application/notifications/schedule_notifications_use_case.dart';
 import 'package:subctrl/application/settings/get_base_currency_code_use_case.dart';
 import 'package:subctrl/application/settings/get_currency_rates_auto_download_use_case.dart';
 import 'package:subctrl/application/settings/get_locale_code_use_case.dart';
@@ -37,6 +42,7 @@ import 'package:subctrl/infrastructure/persistence/daos/subscriptions_dao.dart';
 import 'package:subctrl/infrastructure/persistence/daos/tags_dao.dart';
 import 'package:subctrl/infrastructure/persistence/database.dart';
 import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
+import 'package:subctrl/infrastructure/platform/notification_permission_service.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_rate_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_currency_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_settings_repository.dart';
@@ -75,7 +81,11 @@ class AppDependencies {
     required this.setNotificationsEnabledUseCase,
     required this.getNotificationReminderOffsetUseCase,
     required this.setNotificationReminderOffsetUseCase,
-    required this.localNotificationsService,
+    required this.getPendingNotificationsUseCase,
+    required this.cancelNotificationsUseCase,
+    required this.scheduleNotificationsUseCase,
+    required this.requestNotificationPermissionUseCase,
+    required this.openNotificationSettingsUseCase,
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
   }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
 
@@ -101,6 +111,7 @@ class AppDependencies {
       currencyRepository: currencyRepository,
     );
     final localNotificationsService = LocalNotificationsService();
+    final notificationPermissionService = NotificationPermissionService();
 
     return AppDependencies._(
       watchSubscriptionsUseCase: WatchSubscriptionsUseCase(
@@ -163,7 +174,21 @@ class AppDependencies {
           GetNotificationReminderOffsetUseCase(settingsRepository),
       setNotificationReminderOffsetUseCase:
           SetNotificationReminderOffsetUseCase(settingsRepository),
-      localNotificationsService: localNotificationsService,
+      getPendingNotificationsUseCase: GetPendingNotificationsUseCase(
+        localNotificationsService,
+      ),
+      cancelNotificationsUseCase:
+          CancelNotificationsUseCase(localNotificationsService),
+      scheduleNotificationsUseCase: ScheduleNotificationsUseCase(
+        localNotificationsService,
+      ),
+      requestNotificationPermissionUseCase:
+          RequestNotificationPermissionUseCase(
+        notificationPermissionService,
+      ),
+      openNotificationSettingsUseCase: OpenNotificationSettingsUseCase(
+        notificationPermissionService,
+      ),
       yahooFinanceCurrencyClient: yahooFinanceClient,
     );
   }
@@ -204,7 +229,12 @@ class AppDependencies {
   getNotificationReminderOffsetUseCase;
   final SetNotificationReminderOffsetUseCase
   setNotificationReminderOffsetUseCase;
-  final LocalNotificationsService localNotificationsService;
+  final GetPendingNotificationsUseCase getPendingNotificationsUseCase;
+  final CancelNotificationsUseCase cancelNotificationsUseCase;
+  final ScheduleNotificationsUseCase scheduleNotificationsUseCase;
+  final RequestNotificationPermissionUseCase
+  requestNotificationPermissionUseCase;
+  final OpenNotificationSettingsUseCase openNotificationSettingsUseCase;
 
   final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
 

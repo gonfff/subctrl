@@ -9,6 +9,9 @@ import 'package:subctrl/application/currency_rates/fetch_subscription_rates_use_
 import 'package:subctrl/application/currency_rates/get_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/save_currency_rates_use_case.dart';
 import 'package:subctrl/application/currency_rates/watch_currency_rates_use_case.dart';
+import 'package:subctrl/application/notifications/cancel_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/get_pending_notifications_use_case.dart';
+import 'package:subctrl/application/notifications/schedule_notifications_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
@@ -18,9 +21,9 @@ import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/currency_rate.dart';
 import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/planned_notification.dart';
+import 'package:subctrl/domain/entities/pending_notification.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/entities/tag.dart';
-import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 
 class _MockWatchSubscriptionsUseCase extends Mock
@@ -54,8 +57,14 @@ class _MockFetchSubscriptionRatesUseCase extends Mock
 
 class _MockWatchTagsUseCase extends Mock implements WatchTagsUseCase {}
 
-class _MockLocalNotificationsService extends Mock
-    implements LocalNotificationsService {}
+class _MockGetPendingNotificationsUseCase extends Mock
+    implements GetPendingNotificationsUseCase {}
+
+class _MockCancelNotificationsUseCase extends Mock
+    implements CancelNotificationsUseCase {}
+
+class _MockScheduleNotificationsUseCase extends Mock
+    implements ScheduleNotificationsUseCase {}
 
 void main() {
   setUpAll(() {
@@ -83,7 +92,9 @@ void main() {
   late _MockSaveCurrencyRatesUseCase saveCurrencyRatesUseCase;
   late _MockFetchSubscriptionRatesUseCase fetchSubscriptionRatesUseCase;
   late _MockWatchTagsUseCase watchTagsUseCase;
-  late _MockLocalNotificationsService localNotificationsService;
+  late _MockGetPendingNotificationsUseCase getPendingNotificationsUseCase;
+  late _MockCancelNotificationsUseCase cancelNotificationsUseCase;
+  late _MockScheduleNotificationsUseCase scheduleNotificationsUseCase;
 
   late StreamController<List<Subscription>> subscriptionsController;
   late StreamController<List<Tag>> tagsController;
@@ -103,7 +114,9 @@ void main() {
     saveCurrencyRatesUseCase = _MockSaveCurrencyRatesUseCase();
     fetchSubscriptionRatesUseCase = _MockFetchSubscriptionRatesUseCase();
     watchTagsUseCase = _MockWatchTagsUseCase();
-    localNotificationsService = _MockLocalNotificationsService();
+    getPendingNotificationsUseCase = _MockGetPendingNotificationsUseCase();
+    cancelNotificationsUseCase = _MockCancelNotificationsUseCase();
+    scheduleNotificationsUseCase = _MockScheduleNotificationsUseCase();
 
     subscriptionsController = StreamController<List<Subscription>>.broadcast();
     tagsController = StreamController<List<Tag>>.broadcast();
@@ -125,13 +138,13 @@ void main() {
       () => getCurrencyRatesUseCase(any()),
     ).thenAnswer((_) async => const []);
     when(
-      () => localNotificationsService.pendingNotificationRequests(),
-    ).thenAnswer((_) async => const []);
+      () => getPendingNotificationsUseCase(),
+    ).thenAnswer((_) async => const <PendingNotification>[]);
     when(
-      () => localNotificationsService.cancelNotifications(any()),
+      () => cancelNotificationsUseCase(any()),
     ).thenAnswer((_) async {});
     when(
-      () => localNotificationsService.scheduleNotifications(any()),
+      () => scheduleNotificationsUseCase(any()),
     ).thenAnswer((_) async {});
     when(
       () => saveCurrencyRatesUseCase(
@@ -163,7 +176,9 @@ void main() {
       watchTagsUseCase: watchTagsUseCase,
       initialBaseCurrencyCode: 'USD',
       initialAutoDownloadEnabled: false,
-      localNotificationsService: localNotificationsService,
+      getPendingNotificationsUseCase: getPendingNotificationsUseCase,
+      cancelNotificationsUseCase: cancelNotificationsUseCase,
+      scheduleNotificationsUseCase: scheduleNotificationsUseCase,
       notificationsEnabled: false,
       notificationReminderOption: NotificationReminderOption.sameDay,
       initialLocale: const Locale('en'),
@@ -316,7 +331,9 @@ void main() {
       watchTagsUseCase: watchTagsUseCase,
       initialBaseCurrencyCode: 'USD',
       initialAutoDownloadEnabled: true,
-      localNotificationsService: localNotificationsService,
+      getPendingNotificationsUseCase: getPendingNotificationsUseCase,
+      cancelNotificationsUseCase: cancelNotificationsUseCase,
+      scheduleNotificationsUseCase: scheduleNotificationsUseCase,
       notificationsEnabled: false,
       notificationReminderOption: NotificationReminderOption.sameDay,
       initialLocale: const Locale('en'),

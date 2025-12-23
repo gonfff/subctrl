@@ -3,8 +3,11 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/cupertino.dart';
 import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/application/notifications/open_notification_settings_use_case.dart';
+import 'package:subctrl/application/notifications/request_notification_permission_use_case.dart';
 import 'package:subctrl/domain/entities/currency.dart';
-import 'package:subctrl/infrastructure/platform/notification_permission_service.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
+import 'package:subctrl/domain/entities/notification_permission_status.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/about_screen.dart';
 import 'package:subctrl/presentation/screens/currency_rates_screen.dart';
@@ -13,7 +16,6 @@ import 'package:subctrl/presentation/screens/support_screen.dart';
 import 'package:subctrl/presentation/screens/tag_settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/settings_view_model.dart';
 import 'package:subctrl/presentation/widgets/currency_picker.dart';
@@ -58,7 +60,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late final SettingsViewModel _viewModel;
-  late final NotificationPermissionService _notificationPermissionService;
+  late final RequestNotificationPermissionUseCase
+  _requestNotificationPermissionUseCase;
+  late final OpenNotificationSettingsUseCase _openNotificationSettingsUseCase;
   late ThemePreference _currentThemePreference;
   Locale? _currentLocale;
   String? _currentBaseCurrencyCode;
@@ -70,7 +74,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _viewModel = SettingsViewModel(widget.dependencies.watchCurrenciesUseCase);
-    _notificationPermissionService = NotificationPermissionService();
+    _requestNotificationPermissionUseCase =
+        widget.dependencies.requestNotificationPermissionUseCase;
+    _openNotificationSettingsUseCase =
+        widget.dependencies.openNotificationSettingsUseCase;
     _currentThemePreference = widget.themePreference;
     _currentLocale = widget.selectedLocale;
     _currentBaseCurrencyCode = widget.baseCurrencyCode?.toUpperCase();
@@ -321,7 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _handleNotificationsToggleChanged(bool value) async {
     if (value) {
-      final status = await _notificationPermissionService.requestPermission();
+      final status = await _requestNotificationPermissionUseCase();
       final isGranted =
           status == NotificationPermissionStatus.authorized ||
           status == NotificationPermissionStatus.provisional ||
@@ -340,7 +347,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _handleOpenAppSettings() async {
-    await _notificationPermissionService.openAppSettings();
+    await _openNotificationSettingsUseCase();
   }
 
   Future<void> _showNotificationsDeniedDialog() async {

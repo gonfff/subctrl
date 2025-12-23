@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:subctrl/domain/entities/planned_notification.dart';
 import 'package:subctrl/infrastructure/platform/local_notifications_service.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 class _MockFlutterLocalNotificationsPlugin extends Mock
@@ -16,7 +16,7 @@ void main() {
   const timezoneChannel = MethodChannel('flutter_timezone');
 
   setUpAll(() {
-    tz.initializeTimeZones();
+    tz_data.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('UTC'));
     registerFallbackValue(tz.TZDateTime.from(DateTime(2024, 1, 1), tz.local));
     registerFallbackValue(
@@ -29,11 +29,13 @@ void main() {
   });
 
   setUp(() {
-    timezoneChannel.setMockMethodCallHandler((call) async => 'UTC');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(timezoneChannel, (call) async => 'UTC');
   });
 
   tearDown(() {
-    timezoneChannel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(timezoneChannel, null);
   });
 
   test('initialize is idempotent', () async {

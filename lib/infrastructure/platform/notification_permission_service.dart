@@ -1,12 +1,5 @@
 import 'package:flutter/services.dart';
-
-enum NotificationPermissionStatus {
-  authorized,
-  denied,
-  notDetermined,
-  provisional,
-  ephemeral,
-}
+import 'package:subctrl/domain/entities/notification_permission_status.dart';
 
 class NotificationPermissionService {
   NotificationPermissionService();
