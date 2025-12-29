@@ -25,7 +25,6 @@ void main() {
     registerFallbackValue(
       const NotificationDetails(iOS: DarwinNotificationDetails()),
     );
-    registerFallbackValue(UILocalNotificationDateInterpretation.wallClockTime);
   });
 
   setUp(() {
@@ -102,9 +101,8 @@ void main() {
         any(),
         any(),
         payload: any(named: 'payload'),
-        uiLocalNotificationDateInterpretation: any(
-          named: 'uiLocalNotificationDateInterpretation',
-        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: null,
       ),
     ).thenAnswer((_) async {});
 
@@ -134,8 +132,8 @@ void main() {
         any(),
         any(),
         payload: 'p1',
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: null,
       ),
     ).called(1);
     verify(
@@ -146,8 +144,8 @@ void main() {
         any(),
         any(),
         payload: null,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: null,
       ),
     ).called(1);
   });

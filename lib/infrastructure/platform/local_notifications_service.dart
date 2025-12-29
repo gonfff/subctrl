@@ -73,8 +73,7 @@ class LocalNotificationsService {
         scheduledDate,
         details,
         payload: notification.payload,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.wallClockTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
       scheduled += 1;
     }
@@ -91,8 +90,8 @@ class LocalNotificationsService {
     tz_data.initializeTimeZones();
     try {
       final timezone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timezone));
-      _log('Configured timezone: $timezone');
+      tz.setLocalLocation(tz.getLocation(timezone.identifier));
+      _log('Configured timezone: ${timezone.identifier}');
     } catch (error, stackTrace) {
       _log(
         'Failed to configure timezone',
