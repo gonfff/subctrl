@@ -165,7 +165,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               totalLabel: _formatAmount(filteredTotals.totalAmount),
               localizations: localizations,
             ),
-            const SizedBox(height: 0),
             if (slices.isNotEmpty)
               AnalyticsPieChart(slices: slices, formatAmount: _formatAmount)
             else
