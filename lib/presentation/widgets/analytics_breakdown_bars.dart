@@ -162,54 +162,6 @@ class _BarRow extends StatelessWidget {
   }
 }
 
-class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(99),
-      ),
-    );
-  }
-}
-
-class _LegendEntry extends StatelessWidget {
-  const _LegendEntry({
-    required this.color,
-    required this.label,
-    required this.textStyle,
-  });
-
-  final Color color;
-  final String label;
-  final TextStyle textStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _LegendDot(color: color),
-        const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            label,
-            style: textStyle,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _BarSegment extends StatelessWidget {
   const _BarSegment({
     required this.width,
