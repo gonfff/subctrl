@@ -245,12 +245,12 @@ class _PieChartPainter extends CustomPainter {
         firstSlice != null &&
         firstSliceSweep != null) {
       final wrapSweep = math.min(
-        firstSliceSweep!,
+        firstSliceSweep,
         _capCompensationSweep(arcRect, strokeWidth),
       );
       if (wrapSweep > 0) {
         final wrapPaint = Paint()
-          ..color = firstSlice!.color
+          ..color = firstSlice.color
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round;
