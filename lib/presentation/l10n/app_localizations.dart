@@ -173,7 +173,7 @@ class AppLocalizations {
       'analyticsPeriodYear': 'Текущий год',
       'analyticsFiltersClear': 'Сбросить фильтры',
       'analyticsSummaryPeriodLabel': 'Период',
-      'analyticsSummarySpentLabel': 'Потрачено за период',
+      'analyticsSummarySpentLabel': 'Потрачено',
       'analyticsSummaryTotalLabel': 'Всего трат',
       'analyticsBreakdownPaidLabel': 'Оплачено {amount}',
       'analyticsBreakdownUpcomingLabel': 'Осталось {amount}',
@@ -338,8 +338,10 @@ class AppLocalizations {
   String analyticsBreakdownPaidLabel(String amount) =>
       _strings['analyticsBreakdownPaidLabel']!.replaceAll('{amount}', amount);
   String analyticsBreakdownUpcomingLabel(String amount) =>
-      _strings['analyticsBreakdownUpcomingLabel']!
-          .replaceAll('{amount}', amount);
+      _strings['analyticsBreakdownUpcomingLabel']!.replaceAll(
+        '{amount}',
+        amount,
+      );
   String get addButtonLabel => _strings['addButtonLabel']!;
   String get settingsTitle => _strings['settingsTitle']!;
   String get settingsGeneralSection => _strings['settingsGeneralSection']!;
