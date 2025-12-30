@@ -21,6 +21,20 @@ class AppLocalizations {
       'subscriptionsTitle': 'Subscriptions',
       'analyticsTitle': 'Analytics',
       'analyticsPlaceholder': 'Analytics will appear here soon.',
+      'analyticsFiltersTitle': 'Filters',
+      'analyticsFiltersPeriodTitle': 'Period',
+      'analyticsFiltersTagsTitle': 'Tags',
+      'analyticsFiltersTagsEmpty': 'Add tags in settings to filter by them.',
+      'analyticsPeriodAllTime': 'All time',
+      'analyticsPeriodMonth': 'This month',
+      'analyticsPeriodQuarter': 'This quarter',
+      'analyticsPeriodYear': 'This year',
+      'analyticsFiltersClear': 'Clear filters',
+      'analyticsSummaryPeriodLabel': 'Period',
+      'analyticsSummarySpentLabel': 'Spent in period',
+      'analyticsSummaryTotalLabel': 'Total spending',
+      'analyticsBreakdownPaidLabel': 'Paid {amount}',
+      'analyticsBreakdownUpcomingLabel': 'Upcoming {amount}',
       'addButtonLabel': 'Add',
       'settingsTitle': 'Settings',
       'settingsGeneralSection': 'General',
@@ -148,6 +162,21 @@ class AppLocalizations {
       'subscriptionsTitle': 'Подписки',
       'analyticsTitle': 'Аналитика',
       'analyticsPlaceholder': 'Раздел аналитики появится здесь совсем скоро.',
+      'analyticsFiltersTitle': 'Фильтры',
+      'analyticsFiltersPeriodTitle': 'Период',
+      'analyticsFiltersTagsTitle': 'Теги',
+      'analyticsFiltersTagsEmpty':
+          'Добавьте теги в настройках, чтобы фильтровать.',
+      'analyticsPeriodAllTime': 'За всё время',
+      'analyticsPeriodMonth': 'Текущий месяц',
+      'analyticsPeriodQuarter': 'Текущий квартал',
+      'analyticsPeriodYear': 'Текущий год',
+      'analyticsFiltersClear': 'Сбросить фильтры',
+      'analyticsSummaryPeriodLabel': 'Период',
+      'analyticsSummarySpentLabel': 'Потрачено за период',
+      'analyticsSummaryTotalLabel': 'Всего трат',
+      'analyticsBreakdownPaidLabel': 'Оплачено {amount}',
+      'analyticsBreakdownUpcomingLabel': 'Осталось {amount}',
       'addButtonLabel': 'Добавить',
       'settingsTitle': 'Настройки',
       'settingsGeneralSection': 'Основные',
@@ -288,6 +317,29 @@ class AppLocalizations {
   String get subscriptionsTitle => _strings['subscriptionsTitle']!;
   String get analyticsTitle => _strings['analyticsTitle']!;
   String get analyticsPlaceholder => _strings['analyticsPlaceholder']!;
+  String get analyticsFiltersTitle => _strings['analyticsFiltersTitle']!;
+  String get analyticsFiltersPeriodTitle =>
+      _strings['analyticsFiltersPeriodTitle']!;
+  String get analyticsFiltersTagsTitle =>
+      _strings['analyticsFiltersTagsTitle']!;
+  String get analyticsFiltersTagsEmpty =>
+      _strings['analyticsFiltersTagsEmpty']!;
+  String get analyticsPeriodAllTime => _strings['analyticsPeriodAllTime']!;
+  String get analyticsPeriodMonth => _strings['analyticsPeriodMonth']!;
+  String get analyticsPeriodQuarter => _strings['analyticsPeriodQuarter']!;
+  String get analyticsPeriodYear => _strings['analyticsPeriodYear']!;
+  String get analyticsFiltersClear => _strings['analyticsFiltersClear']!;
+  String get analyticsSummaryPeriodLabel =>
+      _strings['analyticsSummaryPeriodLabel']!;
+  String get analyticsSummarySpentLabel =>
+      _strings['analyticsSummarySpentLabel']!;
+  String get analyticsSummaryTotalLabel =>
+      _strings['analyticsSummaryTotalLabel']!;
+  String analyticsBreakdownPaidLabel(String amount) =>
+      _strings['analyticsBreakdownPaidLabel']!.replaceAll('{amount}', amount);
+  String analyticsBreakdownUpcomingLabel(String amount) =>
+      _strings['analyticsBreakdownUpcomingLabel']!
+          .replaceAll('{amount}', amount);
   String get addButtonLabel => _strings['addButtonLabel']!;
   String get settingsTitle => _strings['settingsTitle']!;
   String get settingsGeneralSection => _strings['settingsGeneralSection']!;

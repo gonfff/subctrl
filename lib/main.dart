@@ -245,7 +245,10 @@ class HomeTabs extends StatelessWidget {
                   'subscriptions-$themeKey-$localeKey-$baseCurrencyKey-'
                   '$notificationsKey-$reminderKey',
                 )
-              : null,
+              : ValueKey(
+                  'analytics-$themeKey-$localeKey-$baseCurrencyKey-'
+                  '$notificationsKey-$reminderKey',
+                ),
           builder: (context) {
             switch (index) {
               case 0:
@@ -268,7 +271,24 @@ class HomeTabs extends StatelessWidget {
                   onNotificationReminderChanged: onNotificationReminderChanged,
                 );
               case 1:
-                return const AnalyticsScreen();
+                return AnalyticsScreen(
+                  dependencies: dependencies,
+                  themePreference: themePreference,
+                  onThemePreferenceChanged: onThemePreferenceChanged,
+                  selectedLocale: selectedLocale,
+                  onLocaleChanged: onLocaleChanged,
+                  baseCurrencyCode: baseCurrencyCode,
+                  onBaseCurrencyChanged: onBaseCurrencyChanged,
+                  currencyRatesAutoDownloadEnabled:
+                      currencyRatesAutoDownloadEnabled,
+                  onCurrencyRatesAutoDownloadChanged:
+                      onCurrencyRatesAutoDownloadChanged,
+                  notificationsEnabled: notificationsEnabled,
+                  onNotificationsPreferenceChanged:
+                      onNotificationsPreferenceChanged,
+                  notificationReminderOption: notificationReminderOption,
+                  onNotificationReminderChanged: onNotificationReminderChanged,
+                );
               default:
                 return const SizedBox.shrink();
             }
