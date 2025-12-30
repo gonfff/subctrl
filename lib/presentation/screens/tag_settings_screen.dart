@@ -8,6 +8,7 @@ import 'package:subctrl/domain/exceptions/duplicate_tag_name_exception.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/tag_colors.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 import 'package:subctrl/presentation/viewmodels/tag_settings_view_model.dart';
 
 class TagSettingsScreen extends StatefulWidget {
@@ -322,7 +323,10 @@ class _TagRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _colorFromHex(tag.colorHex);
+    final color = colorFromHex(
+      tag.colorHex,
+      fallbackColor: const Color(0xFF000000),
+    );
     final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
 
     return CupertinoFormRow(
@@ -414,10 +418,4 @@ class _TagFormData {
 
   final String name;
   final String colorHex;
-}
-
-Color _colorFromHex(String hex) {
-  final normalized = hex.replaceFirst('#', '').padLeft(6, '0');
-  final value = int.parse(normalized, radix: 16);
-  return Color(0xFF000000 | value);
 }
