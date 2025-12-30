@@ -66,14 +66,14 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
     final backgroundColor = AppTheme.scaffoldBackgroundColor(context);
     final handleColor = CupertinoColors.systemGrey4.resolveFrom(context);
 
-    return WillPopScope(
-      onWillPop: () async {
-        if (_isClosing) {
+    return PopScope(
+      canPop: _isClosing,
+      onPopInvoked: (didPop) {
+        if (didPop) {
           _isClosing = false;
-          return true;
+          return;
         }
         _apply();
-        return false;
       },
       child: GestureDetector(
         onVerticalDragEnd: (details) {
