@@ -8,10 +8,12 @@ import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/domain/services/subscription_occurrence_calculator.dart';
+import 'package:subctrl/domain/utils/date_utils.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 import 'package:subctrl/presentation/viewmodels/analytics_view_model.dart';
 import 'package:subctrl/presentation/widgets/analytics_breakdown_bars.dart';
 import 'package:subctrl/presentation/widgets/analytics_filters_sheet.dart';
@@ -55,7 +57,7 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  AnalyticsPeriod _selectedPeriod = AnalyticsPeriod.allTime;
+  AnalyticsPeriod _selectedPeriod = AnalyticsPeriod.month;
   Set<int> _selectedTagIds = <int>{};
   List<Tag> _tags = const [];
   Map<int, Tag> _tagMap = const {};
@@ -115,7 +117,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       AnalyticsPeriod.allTime => localizations.analyticsPeriodAllTime,
     };
     final range = _currentRange();
-    final today = _stripTime(DateTime.now());
+    final today = stripTime(DateTime.now());
     final filteredSubscriptions = _filteredSubscriptions(range, today);
     final filteredTotals = _sumAmounts(filteredSubscriptions, range, today);
     final breakdowns = _buildBreakdowns(filteredSubscriptions, range, today);
@@ -226,7 +228,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   void _handleFiltersCleared() {
     setState(() {
-      _selectedPeriod = AnalyticsPeriod.allTime;
+      _selectedPeriod = AnalyticsPeriod.month;
       _selectedTagIds.clear();
     });
   }
@@ -275,7 +277,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   _DateRange _currentRange() {
     final now = DateTime.now();
-    final today = _stripTime(now);
+    final today = stripTime(now);
     switch (_selectedPeriod) {
       case AnalyticsPeriod.month:
         final start = DateTime(today.year, today.month, 1);
@@ -359,11 +361,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     _DateRange range,
     DateTime today,
   ) {
+    final statusAwareRange = _rangeWithinSubscriptionStatus(
+      subscription,
+      range,
+    );
+    if (statusAwareRange == null) {
+      return SubscriptionOccurrences.empty;
+    }
     return calculateSubscriptionOccurrences(
       cycle: subscription.cycle,
       purchaseDate: subscription.purchaseDate,
-      rangeStart: range.start,
-      rangeEnd: range.end,
+      rangeStart: statusAwareRange.start,
+      rangeEnd: statusAwareRange.end,
       today: today,
     );
   }
@@ -418,7 +427,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           : 'subscription-${subscription.id ?? subscription.name}';
       final label = tag?.name ?? subscription.name;
       final color = tag != null
-          ? _colorFromHex(tag.colorHex)
+          ? colorFromHex(
+              tag.colorHex,
+              fallbackColor: _fallbackColors.first,
+            )
           : _colorForLabel(label);
       final amounts =
           _subscriptionAmountsForRange(subscription, range, today);
@@ -443,20 +455,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return _fallbackColors[index];
   }
 
-  Color _colorFromHex(String hexColor) {
-    var hex = hexColor.replaceFirst('#', '');
-    if (hex.length == 6) {
-      hex = 'FF$hex';
+  _DateRange? _rangeWithinSubscriptionStatus(
+    Subscription subscription,
+    _DateRange range,
+  ) {
+    final statusDate = stripTime(subscription.statusChangedAt);
+    if (subscription.isActive) {
+      final adjustedStart =
+          statusDate.isAfter(range.start) ? statusDate : range.start;
+      if (adjustedStart.isAfter(range.end)) {
+        return null;
+      }
+      return _DateRange(start: adjustedStart, end: range.end);
     }
-    final value = int.tryParse(hex, radix: 16);
-    if (value == null) {
-      return _fallbackColors.first;
+    final inactiveEnd = statusDate.subtract(const Duration(days: 1));
+    final adjustedEnd =
+        inactiveEnd.isBefore(range.end) ? inactiveEnd : range.end;
+    if (adjustedEnd.isBefore(range.start)) {
+      return null;
     }
-    return Color(value);
-  }
-
-  DateTime _stripTime(DateTime value) {
-    return DateTime(value.year, value.month, value.day);
+    return _DateRange(start: range.start, end: adjustedEnd);
   }
 }
 

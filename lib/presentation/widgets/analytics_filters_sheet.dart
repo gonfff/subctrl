@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 import 'package:subctrl/presentation/viewmodels/analytics_view_model.dart';
 
 class AnalyticsFiltersSheet extends StatefulWidget {
@@ -277,7 +278,7 @@ class _TagsSection extends StatelessWidget {
                   (tag) => _TagChip(
                     label: tag.name,
                     selected: selected.contains(tag.id),
-                    color: _colorFromHex(tag.colorHex),
+                    color: colorFromHex(tag.colorHex),
                     onPressed: () => onToggle(tag.id),
                   ),
                 )
@@ -342,14 +343,6 @@ class _TagChip extends StatelessWidget {
       ),
     );
   }
-}
-
-Color _colorFromHex(String hexColor) {
-  var hex = hexColor.replaceFirst('#', '');
-  if (hex.length == 6) {
-    hex = 'FF$hex';
-  }
-  return Color(int.parse(hex, radix: 16));
 }
 
 class _FilterChip extends StatelessWidget {

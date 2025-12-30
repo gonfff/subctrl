@@ -7,6 +7,7 @@ import 'package:subctrl/presentation/formatters/currency_formatter.dart';
 import 'package:subctrl/presentation/formatters/date_formatter.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 
 class SubscriptionCard extends StatelessWidget {
   const SubscriptionCard({
@@ -62,7 +63,10 @@ class SubscriptionCard extends StatelessWidget {
                   if (tag != null)
                     SubscriptionTag(
                       label: tag!.name,
-                      color: _colorFromHex(tag!.colorHex),
+                      color: colorFromHex(
+                        tag!.colorHex,
+                        fallbackColor: const Color(0xFF000000),
+                      ),
                     ),
                 ],
               ),
@@ -197,12 +201,6 @@ class _StatusIndicator extends StatelessWidget {
         : CupertinoIcons.xmark_circle_fill;
     return Icon(icon, size: 18, color: color);
   }
-}
-
-Color _colorFromHex(String hex) {
-  final normalized = hex.replaceFirst('#', '').padLeft(6, '0');
-  final value = int.parse(normalized, radix: 16);
-  return Color(0xFF000000 | value);
 }
 
 class _BaseCurrencyValue extends StatelessWidget {

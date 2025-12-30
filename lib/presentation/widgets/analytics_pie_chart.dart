@@ -129,8 +129,8 @@ class _AnalyticsPieChartState extends State<AnalyticsPieChart> {
     AnalyticsPieSlice? displaySlice,
   ) {
     final localizations = AppLocalizations.of(context);
-    final label = displaySlice?.label ??
-        localizations.analyticsSummaryTotalLabel;
+    final label =
+        displaySlice?.label ?? localizations.analyticsSummaryTotalLabel;
     final amount = displaySlice?.amount ?? _totalAmount;
     final percentage = _percentageString(displaySlice);
     return _CenterLabel(
@@ -167,8 +167,10 @@ class _PieChartPainter extends CustomPainter {
     final paintableSlices = slices
         .where((slice) => slice.amount > 0)
         .toList(growable: false);
-    final total =
-        paintableSlices.fold<double>(0, (sum, slice) => sum + slice.amount);
+    final total = paintableSlices.fold<double>(
+      0,
+      (sum, slice) => sum + slice.amount,
+    );
     final diameter = math.min(size.width, size.height) * 0.82;
     final offsetX = (size.width - diameter) / 2;
     final offsetY = (size.height - diameter) / 2;
@@ -230,13 +232,7 @@ class _PieChartPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round;
-        canvas.drawArc(
-          arcRect,
-          startAngle,
-          sweep,
-          false,
-          highlightPaint,
-        );
+        canvas.drawArc(arcRect, startAngle, sweep, false, highlightPaint);
       }
       startAngle = endAngle;
     }

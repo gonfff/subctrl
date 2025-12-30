@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 
 Future<int?> showTagPicker({
   required BuildContext context,
@@ -122,7 +123,11 @@ Future<int?> showTagPicker({
                                         width: 18,
                                         height: 18,
                                         decoration: BoxDecoration(
-                                          color: _colorFromHex(tag.colorHex),
+                                          color: colorFromHex(
+                                            tag.colorHex,
+                                            fallbackColor:
+                                                const Color(0xFF000000),
+                                          ),
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -158,10 +163,4 @@ Future<int?> showTagPicker({
       );
     },
   );
-}
-
-Color _colorFromHex(String hex) {
-  final normalized = hex.replaceFirst('#', '').padLeft(6, '0');
-  final value = int.parse(normalized, radix: 16);
-  return Color(0xFF000000 | value);
 }

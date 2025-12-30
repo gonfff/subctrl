@@ -228,6 +228,15 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
     if (nextPayment == null) return;
 
     final initial = widget.initialSubscription;
+    final statusChangedAt = () {
+      if (initial == null) {
+        return _purchaseDate;
+      }
+      if (initial.isActive != _isActive) {
+        return DateTime.now();
+      }
+      return initial.statusChangedAt;
+    }();
     final subscription = Subscription(
       id: initial?.id,
       name: _nameController.text.trim(),
@@ -237,7 +246,7 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
       purchaseDate: _purchaseDate,
       nextPaymentDate: nextPayment,
       isActive: _isActive,
-      statusChangedAt: initial?.statusChangedAt ?? DateTime.now(),
+      statusChangedAt: statusChangedAt,
       tagId: _selectedTagId,
     );
 

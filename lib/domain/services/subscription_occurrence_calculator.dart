@@ -1,4 +1,5 @@
 import 'package:subctrl/domain/entities/subscription.dart';
+import 'package:subctrl/domain/utils/date_utils.dart';
 
 class SubscriptionOccurrences {
   const SubscriptionOccurrences({
@@ -22,22 +23,22 @@ SubscriptionOccurrences calculateSubscriptionOccurrences({
   required DateTime rangeEnd,
   required DateTime today,
 }) {
-  final normalizedStart = _stripTime(rangeStart);
-  final normalizedEnd = _stripTime(rangeEnd);
+  final normalizedStart = stripTime(rangeStart);
+  final normalizedEnd = stripTime(rangeEnd);
   if (normalizedEnd.isBefore(normalizedStart)) {
     return SubscriptionOccurrences.empty;
   }
 
-  var occurrence = _stripTime(purchaseDate);
+  var occurrence = stripTime(purchaseDate);
   if (occurrence.isAfter(normalizedEnd)) {
     return SubscriptionOccurrences.empty;
   }
 
-  final normalizedToday = _stripTime(today);
+  final normalizedToday = stripTime(today);
 
   // Advance to the first occurrence within the range.
   while (occurrence.isBefore(normalizedStart)) {
-    final next = _stripTime(cycle.addTo(occurrence));
+    final next = stripTime(cycle.addTo(occurrence));
     if (!next.isAfter(occurrence)) {
       return SubscriptionOccurrences.empty;
     }
@@ -54,7 +55,7 @@ SubscriptionOccurrences calculateSubscriptionOccurrences({
     if (!occurrence.isAfter(normalizedToday)) {
       occurred++;
     }
-    final next = _stripTime(cycle.addTo(occurrence));
+    final next = stripTime(cycle.addTo(occurrence));
     if (!next.isAfter(occurrence)) {
       break;
     }
@@ -65,8 +66,4 @@ SubscriptionOccurrences calculateSubscriptionOccurrences({
     totalOccurrences: total,
     occurredOccurrences: occurred,
   );
-}
-
-DateTime _stripTime(DateTime value) {
-  return DateTime(value.year, value.month, value.day);
 }
