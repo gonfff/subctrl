@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key, required this.onClose});
@@ -16,7 +15,8 @@ class AboutScreen extends StatefulWidget {
 
 class _AboutScreenState extends State<AboutScreen> {
   static const _authorName = 'Denis Dementev';
-  static const _projectsUrl = 'https://gonfff.github.io';
+  static const _authorUrl = 'https://gonfff.com';
+  static const _projectsUrl = 'https://github.com/gonfff/subctrl';
   static const _telegramUrl = 'https://t.me/gonff';
 
   String? _version;
@@ -39,9 +39,20 @@ class _AboutScreenState extends State<AboutScreen> {
     }
   }
 
-  Future<void> _copyValue(String value) async {
-    await Clipboard.setData(ClipboardData(text: value));
-    await HapticFeedback.selectionClick();
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!opened) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (_) {
+        // Ignore launch failures to keep the UI responsive.
+      }
+    }
   }
 
   void _handleBackPressed() {
@@ -78,18 +89,19 @@ class _AboutScreenState extends State<AboutScreen> {
                 _SettingsTile(
                   label: localizations.settingsAboutAuthor,
                   value: _authorName,
+                  onTap: () => _openUrl(_authorUrl),
                 ),
-                _CopyableValueTile(
+                _LinkValueTile(
                   label: localizations.settingsAboutProjects,
                   value: _projectsUrl,
-                  copyLabel: localizations.settingsCopyAction,
-                  onCopy: () => _copyValue(_projectsUrl),
+                  linkLabel: 'GitHub',
+                  onTap: () => _openUrl(_projectsUrl),
                 ),
-                _CopyableValueTile(
+                _LinkValueTile(
                   label: localizations.settingsAboutTelegram,
                   value: _telegramUrl,
-                  copyLabel: localizations.settingsCopyAction,
-                  onCopy: () => _copyValue(_telegramUrl),
+                  linkLabel: '@gonff',
+                  onTap: () => _openUrl(_telegramUrl),
                 ),
               ],
             ),
@@ -101,75 +113,87 @@ class _AboutScreenState extends State<AboutScreen> {
 }
 
 class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({required this.label, required this.value});
+  const _SettingsTile({required this.label, required this.value, this.onTap});
 
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
     final secondary = CupertinoColors.systemGrey.resolveFrom(context);
+    final linkColor = CupertinoColors.activeBlue.resolveFrom(context);
+    final isLink = onTap != null;
+    final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: Text(label, style: textStyle)),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          alignment: Alignment.centerRight,
+          child: Text(
+            value,
+            style: textStyle.copyWith(
+              color: isLink ? linkColor : secondary,
+              fontSize: 13,
+              decoration: isLink ? TextDecoration.underline : null,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+    final formRow = CupertinoFormRow(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Semantics(button: isLink, child: row),
+    );
+    if (onTap == null) {
+      return formRow;
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: formRow,
+    );
+  }
+}
+
+class _LinkValueTile extends StatelessWidget {
+  const _LinkValueTile({
+    required this.label,
+    required this.value,
+    required this.onTap,
+    this.linkLabel,
+  });
+
+  final String label;
+  final String value;
+  final String? linkLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
+    final linkColor = CupertinoColors.activeBlue.resolveFrom(context);
     return CupertinoFormRow(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(child: Text(label, style: textStyle)),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            alignment: Alignment.centerRight,
-            child: Text(
-              value,
-              style: textStyle.copyWith(color: secondary, fontSize: 13),
-              textAlign: TextAlign.right,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CopyableValueTile extends StatelessWidget {
-  const _CopyableValueTile({
-    required this.label,
-    required this.value,
-    required this.copyLabel,
-    required this.onCopy,
-  });
-
-  final String label;
-  final String value;
-  final String copyLabel;
-  final VoidCallback onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
-    final secondary = CupertinoColors.systemGrey.resolveFrom(context);
-    return CupertinoFormRow(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: textStyle),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: textStyle.copyWith(fontSize: 13, color: secondary),
-                ),
-              ],
-            ),
-          ),
           CupertinoButton(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            onPressed: onCopy,
-            child: Text(copyLabel),
+            alignment: Alignment.centerRight,
+            onPressed: onTap,
+            child: Text(
+              linkLabel ?? value,
+              style: textStyle.copyWith(
+                fontSize: 13,
+                color: linkColor,
+                decoration: TextDecoration.underline,
+              ),
+            ),
           ),
         ],
       ),
