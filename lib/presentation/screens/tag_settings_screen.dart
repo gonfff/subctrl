@@ -114,6 +114,7 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
     try {
       return await showCupertinoDialog<_TagFormData>(
         context: context,
+        barrierDismissible: true,
         builder: (context) {
           final localizations = AppLocalizations.of(context);
           return StatefulBuilder(
