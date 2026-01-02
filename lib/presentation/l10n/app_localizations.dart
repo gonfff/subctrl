@@ -65,6 +65,8 @@ class AppLocalizations {
       'settingsTagsEdit': 'Update tag',
       'settingsTagNameLabel': 'Name',
       'settingsTagColorLabel': 'Tag color',
+      'settingsTagColorCustomLabel': 'Custom color',
+      'settingsTagColorPickerBrightness': 'Brightness',
       'settingsTagEmpty': 'No tags yet',
       'settingsTagDeleteConfirm': 'Delete this tag?',
       'settingsTagSearchPlaceholder': 'Search tags',
@@ -207,6 +209,8 @@ class AppLocalizations {
       'settingsTagsEdit': 'Обновить тег',
       'settingsTagNameLabel': 'Название',
       'settingsTagColorLabel': 'Цвет',
+      'settingsTagColorCustomLabel': 'Пользовательский цвет',
+      'settingsTagColorPickerBrightness': 'Яркость',
       'settingsTagEmpty': 'Пока нет тегов',
       'settingsTagDeleteConfirm': 'Удалить этот тег?',
       'settingsTagSearchPlaceholder': 'Поиск тегов',
@@ -389,6 +393,10 @@ class AppLocalizations {
   String get settingsTagsEdit => _strings['settingsTagsEdit']!;
   String get settingsTagNameLabel => _strings['settingsTagNameLabel']!;
   String get settingsTagColorLabel => _strings['settingsTagColorLabel']!;
+  String get settingsTagColorCustomLabel =>
+      _strings['settingsTagColorCustomLabel']!;
+  String get settingsTagColorPickerBrightness =>
+      _strings['settingsTagColorPickerBrightness']!;
   String get settingsTagEmpty => _strings['settingsTagEmpty']!;
   String get settingsTagDeleteConfirm => _strings['settingsTagDeleteConfirm']!;
   String get settingsTagSearchPlaceholder =>

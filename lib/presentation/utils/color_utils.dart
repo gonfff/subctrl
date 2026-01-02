@@ -23,3 +23,15 @@ Color colorFromHex(
   }
   return Color(value);
 }
+
+String hexFromColor(Color color, {bool includeAlpha = false}) {
+  final buffer = StringBuffer('#');
+  if (includeAlpha) {
+    buffer.write(color.alpha.toRadixString(16).padLeft(2, '0'));
+  }
+  buffer
+    ..write(color.red.toRadixString(16).padLeft(2, '0'))
+    ..write(color.green.toRadixString(16).padLeft(2, '0'))
+    ..write(color.blue.toRadixString(16).padLeft(2, '0'));
+  return buffer.toString().toUpperCase();
+}

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-
 import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/domain/exceptions/duplicate_tag_name_exception.dart';
@@ -10,6 +9,9 @@ import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/tag_colors.dart';
 import 'package:subctrl/presentation/utils/color_utils.dart';
 import 'package:subctrl/presentation/viewmodels/tag_settings_view_model.dart';
+
+const double _kBrightnessMinValue = 0.05;
+const double _kBrightnessMaxValue = 1.0;
 
 class TagSettingsScreen extends StatefulWidget {
   const TagSettingsScreen({
@@ -101,7 +103,11 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
 
   Future<_TagFormData?> _promptTagForm({Tag? initial}) async {
     final controller = TextEditingController(text: initial?.name ?? '');
-    var selectedColor = initial?.colorHex ?? tagColorOptions.first.hex;
+    var selectedColor = (initial?.colorHex ?? tagColorOptions.first.hex)
+        .toUpperCase();
+    var colorHsv = HSVColor.fromColor(
+      colorFromHex(selectedColor, fallbackColor: const Color(0xFF000000)),
+    );
 
     bool isValid() => controller.text.trim().isNotEmpty;
 
@@ -112,6 +118,44 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
           final localizations = AppLocalizations.of(context);
           return StatefulBuilder(
             builder: (context, setModalState) {
+              Color computeSelectedColor() => HSVColor.fromAHSV(
+                1,
+                colorHsv.hue,
+                1,
+                colorHsv.value.clamp(
+                  _kBrightnessMinValue,
+                  _kBrightnessMaxValue,
+                ),
+              ).toColor();
+
+              void syncSelectedHex() {
+                selectedColor = hexFromColor(computeSelectedColor());
+              }
+
+              void updateHue(double ratio) {
+                colorHsv = HSVColor.fromAHSV(
+                  1,
+                  ratio * 360,
+                  1,
+                  colorHsv.value.clamp(
+                    _kBrightnessMinValue,
+                    _kBrightnessMaxValue,
+                  ),
+                );
+                syncSelectedHex();
+              }
+
+              void updateBrightness(double value) {
+                final clampedValue = value.clamp(
+                  _kBrightnessMinValue,
+                  _kBrightnessMaxValue,
+                );
+                colorHsv = HSVColor.fromAHSV(1, colorHsv.hue, 1, clampedValue);
+                syncSelectedHex();
+              }
+
+              final selectedColorValue = computeSelectedColor();
+
               return CupertinoAlertDialog(
                 title: Text(
                   initial == null
@@ -141,19 +185,81 @@ class _TagSettingsScreenState extends State<TagSettingsScreen> {
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: tagColorOptions.map((option) {
-                        final isSelected =
-                            option.hex.toUpperCase() ==
-                            selectedColor.toUpperCase();
-                        return GestureDetector(
-                          onTap: () =>
-                              setModalState(() => selectedColor = option.hex),
-                          child: _ColorSwatch(
-                            color: option.color,
-                            isSelected: isSelected,
+                      children: () {
+                        final normalizedSelected = selectedColor.toUpperCase();
+                        final swatches = tagColorOptions
+                            .map<Widget>((option) {
+                              final isSelected =
+                                  option.hex.toUpperCase() ==
+                                  normalizedSelected;
+                              return GestureDetector(
+                                onTap: () => setModalState(() {
+                                  colorHsv = HSVColor.fromColor(option.color);
+                                  syncSelectedHex();
+                                }),
+                                child: _ColorSwatch(
+                                  color: option.color,
+                                  isSelected: isSelected,
+                                ),
+                              );
+                            })
+                            .toList(growable: true);
+                        final isCustomSelection = !tagColorOptions.any(
+                          (option) =>
+                              option.hex.toUpperCase() == normalizedSelected,
+                        );
+                        swatches.add(
+                          _ColorSwatch(
+                            color: selectedColorValue,
+                            isSelected: isCustomSelection,
                           ),
                         );
-                      }).toList(),
+                        return swatches;
+                      }(),
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        localizations.settingsTagColorCustomLabel,
+                        style: CupertinoTheme.of(
+                          context,
+                        ).textTheme.textStyle.copyWith(fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _HueGradientBar(
+                      hue: colorHsv.hue,
+                      onChanged: (ratio) =>
+                          setModalState(() => updateHue(ratio)),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            localizations.settingsTagColorPickerBrightness,
+                            textAlign: TextAlign.left,
+                            style: CupertinoTheme.of(
+                              context,
+                            ).textTheme.textStyle.copyWith(fontSize: 13),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: _BrightnessSlider(
+                            hue: colorHsv.hue,
+                            value: colorHsv.value.clamp(
+                              _kBrightnessMinValue,
+                              _kBrightnessMaxValue,
+                            ),
+                            onChanged: (value) =>
+                                setModalState(() => updateBrightness(value)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -418,4 +524,183 @@ class _TagFormData {
 
   final String name;
   final String colorHex;
+}
+
+class _HueGradientBar extends StatelessWidget {
+  const _HueGradientBar({required this.hue, required this.onChanged});
+
+  final double hue;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const barHeight = 22.0;
+    const indicatorSize = 22.0;
+    return SizedBox(
+      height: barHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final normalizedHue = (hue / 360).clamp(0.0, 1.0);
+          final indicatorLeft = (normalizedHue * width) - (indicatorSize / 2);
+          final maxLeft = (width - indicatorSize)
+              .clamp(0.0, double.infinity)
+              .toDouble();
+          final clampedLeft = indicatorLeft.clamp(0.0, maxLeft).toDouble();
+
+          void updateHue(Offset position) {
+            final ratio = (position.dx / width).clamp(0.0, 1.0);
+            onChanged(ratio);
+          }
+
+          final indicatorColor = HSVColor.fromAHSV(
+            1,
+            normalizedHue * 360,
+            1,
+            1,
+          ).toColor();
+
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onPanDown: (details) => updateHue(details.localPosition),
+            onPanUpdate: (details) => updateHue(details.localPosition),
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: CupertinoColors.systemGrey4.resolveFrom(context),
+                    ),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFF0000),
+                        Color(0xFFFF7F00),
+                        Color(0xFFFFFF00),
+                        Color(0xFF00FF00),
+                        Color(0xFF00FFFF),
+                        Color(0xFF0000FF),
+                        Color(0xFF8B00FF),
+                        Color(0xFFFF0000),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: clampedLeft,
+                  top: (barHeight - indicatorSize) / 2,
+                  child: Container(
+                    width: indicatorSize,
+                    height: indicatorSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: CupertinoColors.black.withValues(),
+                      ),
+                      color: indicatorColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BrightnessSlider extends StatelessWidget {
+  const _BrightnessSlider({
+    required this.hue,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final double hue;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const barHeight = 16.0;
+    const indicatorSize = 16.0;
+    return SizedBox(
+      height: barHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final normalizedValue =
+              ((value - _kBrightnessMinValue) /
+                      (_kBrightnessMaxValue - _kBrightnessMinValue))
+                  .clamp(0.0, 1.0);
+          final indicatorLeft = (normalizedValue * width) - (indicatorSize / 2);
+          final maxLeft = (width - indicatorSize)
+              .clamp(0.0, double.infinity)
+              .toDouble();
+          final clampedLeft = indicatorLeft.clamp(0.0, maxLeft).toDouble();
+
+          void updateValue(Offset position) {
+            final ratio = (position.dx / width).clamp(0.0, 1.0);
+            final newValue =
+                _kBrightnessMinValue +
+                ((_kBrightnessMaxValue - _kBrightnessMinValue) * ratio);
+            onChanged(newValue);
+          }
+
+          final startColor = HSVColor.fromAHSV(
+            1,
+            hue,
+            1,
+            _kBrightnessMinValue,
+          ).toColor();
+          final endColor = HSVColor.fromAHSV(
+            1,
+            hue,
+            1,
+            _kBrightnessMaxValue,
+          ).toColor();
+          final indicatorColor = HSVColor.fromAHSV(1, hue, 1, value).toColor();
+
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onPanDown: (details) => updateValue(details.localPosition),
+            onPanUpdate: (details) => updateValue(details.localPosition),
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: CupertinoColors.systemGrey4.resolveFrom(context),
+                    ),
+                    gradient: LinearGradient(colors: [startColor, endColor]),
+                  ),
+                ),
+                Positioned(
+                  left: clampedLeft,
+                  top: (barHeight - indicatorSize) / 2,
+                  child: Container(
+                    width: indicatorSize,
+                    height: indicatorSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: CupertinoColors.systemGrey2.resolveFrom(context),
+                      ),
+                      color: indicatorColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

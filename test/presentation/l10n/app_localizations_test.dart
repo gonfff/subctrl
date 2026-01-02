@@ -96,6 +96,8 @@ void main() {
       localizations.settingsTagsEdit,
       localizations.settingsTagNameLabel,
       localizations.settingsTagColorLabel,
+      localizations.settingsTagColorCustomLabel,
+      localizations.settingsTagColorPickerBrightness,
       localizations.settingsTagEmpty,
       localizations.settingsTagDeleteConfirm,
       localizations.settingsTagSearchPlaceholder,
