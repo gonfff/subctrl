@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-
 import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
@@ -12,12 +11,14 @@ class AnalyticsFiltersSheet extends StatefulWidget {
     required this.initialPeriod,
     required this.availableTags,
     required this.initialTagIds,
+    required this.initialAggregateByTags,
     required this.onClear,
   });
 
   final AnalyticsPeriod initialPeriod;
   final List<Tag> availableTags;
   final Set<int> initialTagIds;
+  final bool initialAggregateByTags;
   final VoidCallback onClear;
 
   @override
@@ -25,10 +26,15 @@ class AnalyticsFiltersSheet extends StatefulWidget {
 }
 
 class AnalyticsFiltersResult {
-  const AnalyticsFiltersResult({required this.period, required this.tagIds});
+  const AnalyticsFiltersResult({
+    required this.period,
+    required this.tagIds,
+    required this.aggregateByTags,
+  });
 
   final AnalyticsPeriod period;
   final Set<int> tagIds;
+  final bool aggregateByTags;
 }
 
 class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
@@ -41,6 +47,7 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
 
   late AnalyticsPeriod _period;
   late Set<int> _selectedTagIds;
+  late bool _aggregateByTags;
   bool _isClosing = false;
 
   @override
@@ -48,17 +55,24 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
     super.initState();
     _period = widget.initialPeriod;
     _selectedTagIds = Set<int>.from(widget.initialTagIds);
+    _aggregateByTags = widget.initialAggregateByTags;
   }
 
   void _apply() {
     if (_isClosing) return;
-    _isClosing = true;
-    Navigator.of(context).maybePop(
-      AnalyticsFiltersResult(
-        period: _period,
-        tagIds: Set<int>.from(_selectedTagIds),
-      ),
-    );
+    setState(() {
+      _isClosing = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).maybePop(
+        AnalyticsFiltersResult(
+          period: _period,
+          tagIds: Set<int>.from(_selectedTagIds),
+          aggregateByTags: _aggregateByTags,
+        ),
+      );
+    });
   }
 
   @override
@@ -69,7 +83,7 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
 
     return PopScope(
       canPop: _isClosing,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           _isClosing = false;
           return;
@@ -112,6 +126,15 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
                         child: ListView(
                           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                           children: [
+                            _GroupingSection(
+                              aggregateByTags: _aggregateByTags,
+                              onChanged: (value) {
+                                setState(() {
+                                  _aggregateByTags = value;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 24),
                             _PeriodSection(
                               selected: _period,
                               onSelected: (cycle) {
@@ -146,6 +169,7 @@ class _AnalyticsFiltersSheetState extends State<AnalyticsFiltersSheet> {
                               setState(() {
                                 _period = AnalyticsPeriod.allTime;
                                 _selectedTagIds.clear();
+                                _aggregateByTags = true;
                               });
                               widget.onClear();
                             },
@@ -234,6 +258,58 @@ class _PeriodSection extends StatelessWidget {
               onPressed: () => onSelected(period),
             );
           }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _GroupingSection extends StatelessWidget {
+  const _GroupingSection({
+    required this.aggregateByTags,
+    required this.onChanged,
+  });
+
+  final bool aggregateByTags;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
+    final labelStyle = textStyle.copyWith(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(localizations.analyticsFiltersGroupingTitle, style: labelStyle),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: CupertinoSlidingSegmentedControl<bool>(
+            groupValue: aggregateByTags,
+            children: {
+              true: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text(localizations.analyticsFiltersGroupingTags),
+              ),
+              false: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Text(
+                  localizations.analyticsFiltersGroupingSubscriptions,
+                ),
+              ),
+            },
+            onValueChanged: (value) {
+              if (value != null) {
+                onChanged(value);
+              }
+            },
+          ),
         ),
       ],
     );

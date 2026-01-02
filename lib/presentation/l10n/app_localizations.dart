@@ -20,11 +20,14 @@ class AppLocalizations {
       'languageName': 'English',
       'subscriptionsTitle': 'Subscriptions',
       'analyticsTitle': 'Analytics',
-      'analyticsPlaceholder': 'Analytics will appear here soon.',
+      'analyticsPlaceholder': 'For analytics, subscriptions are needed.',
       'analyticsFiltersTitle': 'Filters',
       'analyticsFiltersPeriodTitle': 'Period',
       'analyticsFiltersTagsTitle': 'Tags',
       'analyticsFiltersTagsEmpty': 'Add tags in settings to filter by them.',
+      'analyticsFiltersGroupingTitle': 'Group by',
+      'analyticsFiltersGroupingTags': 'Tags',
+      'analyticsFiltersGroupingSubscriptions': 'Subscriptions',
       'analyticsPeriodAllTime': 'All time',
       'analyticsPeriodMonth': 'This month',
       'analyticsPeriodQuarter': 'This quarter',
@@ -163,12 +166,15 @@ class AppLocalizations {
       'languageName': 'Русский',
       'subscriptionsTitle': 'Подписки',
       'analyticsTitle': 'Аналитика',
-      'analyticsPlaceholder': 'Раздел аналитики появится здесь совсем скоро.',
+      'analyticsPlaceholder': 'Для аналитики нужны подписки.',
       'analyticsFiltersTitle': 'Фильтры',
       'analyticsFiltersPeriodTitle': 'Период',
       'analyticsFiltersTagsTitle': 'Теги',
       'analyticsFiltersTagsEmpty':
           'Добавьте теги в настройках, чтобы фильтровать.',
+      'analyticsFiltersGroupingTitle': 'Группировка',
+      'analyticsFiltersGroupingTags': 'По тегам',
+      'analyticsFiltersGroupingSubscriptions': 'По подпискам',
       'analyticsPeriodAllTime': 'За всё время',
       'analyticsPeriodMonth': 'Текущий месяц',
       'analyticsPeriodQuarter': 'Текущий квартал',
@@ -328,6 +334,12 @@ class AppLocalizations {
       _strings['analyticsFiltersTagsTitle']!;
   String get analyticsFiltersTagsEmpty =>
       _strings['analyticsFiltersTagsEmpty']!;
+  String get analyticsFiltersGroupingTitle =>
+      _strings['analyticsFiltersGroupingTitle']!;
+  String get analyticsFiltersGroupingTags =>
+      _strings['analyticsFiltersGroupingTags']!;
+  String get analyticsFiltersGroupingSubscriptions =>
+      _strings['analyticsFiltersGroupingSubscriptions']!;
   String get analyticsPeriodAllTime => _strings['analyticsPeriodAllTime']!;
   String get analyticsPeriodMonth => _strings['analyticsPeriodMonth']!;
   String get analyticsPeriodQuarter => _strings['analyticsPeriodQuarter']!;

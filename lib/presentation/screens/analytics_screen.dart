@@ -59,6 +59,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   AnalyticsPeriod _selectedPeriod = AnalyticsPeriod.month;
   Set<int> _selectedTagIds = <int>{};
+  bool _aggregateByTags = true;
   List<Tag> _tags = const [];
   Map<int, Tag> _tagMap = const {};
   List<Subscription> _subscriptions = const [];
@@ -122,7 +123,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final today = stripTime(DateTime.now());
     final filteredSubscriptions = _filteredSubscriptions(range, today);
     final filteredTotals = _sumAmounts(filteredSubscriptions, range, today);
-    final breakdowns = _buildBreakdowns(filteredSubscriptions, range, today);
+    final breakdowns = _buildBreakdowns(
+      filteredSubscriptions,
+      range,
+      today,
+      _aggregateByTags,
+    );
     final slices = breakdowns
         .map(
           (data) => AnalyticsPieSlice(
@@ -215,6 +221,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           initialPeriod: _selectedPeriod,
           availableTags: availableTags,
           initialTagIds: initialTagIds,
+          initialAggregateByTags: _aggregateByTags,
           onClear: _handleFiltersCleared,
         );
       },
@@ -224,6 +231,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       setState(() {
         _selectedPeriod = result.period;
         _selectedTagIds = result.tagIds;
+        _aggregateByTags = result.aggregateByTags;
       });
     }
   }
@@ -232,6 +240,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     setState(() {
       _selectedPeriod = AnalyticsPeriod.month;
       _selectedTagIds.clear();
+      _aggregateByTags = true;
     });
   }
 
@@ -486,6 +495,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     List<Subscription> subscriptions,
     _DateRange range,
     DateTime today,
+    bool aggregateByTags,
   ) {
     if (subscriptions.isEmpty) return const [];
     final Map<String, _AggregatedBreakdown> totals = {};
@@ -493,10 +503,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       final tag = subscription.tagId != null
           ? _tagMap[subscription.tagId!]
           : null;
-      final key = tag != null
-          ? 'tag-${tag.id}'
+      final shouldGroupByTag = aggregateByTags && tag != null;
+      final key = shouldGroupByTag
+          ? 'tag-${tag!.id}'
           : 'subscription-${subscription.id ?? subscription.name}';
-      final label = tag?.name ?? subscription.name;
+      final label = shouldGroupByTag ? tag!.name : subscription.name;
       final color = tag != null
           ? colorFromHex(
               tag.colorHex,
