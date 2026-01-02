@@ -60,6 +60,7 @@ void main() {
       () => deleteCurrencyRateUseCase(
         baseCurrencyCode: any(named: 'baseCurrencyCode'),
         quoteCurrencyCode: any(named: 'quoteCurrencyCode'),
+        rateDate: any(named: 'rateDate'),
       ),
     ).thenAnswer((_) async {});
     when(() => getCurrenciesUseCase()).thenAnswer(
@@ -120,11 +121,12 @@ void main() {
       () => saveCurrencyRatesUseCase(baseCurrencyCode: 'USD', rates: [rate]),
     ).called(1);
 
-    await viewModel.deleteRate('CAD');
+    await viewModel.deleteRate(rate);
     verify(
       () => deleteCurrencyRateUseCase(
         baseCurrencyCode: 'USD',
         quoteCurrencyCode: 'CAD',
+        rateDate: DateTime(rate.fetchedAt.year, rate.fetchedAt.month, rate.fetchedAt.day),
       ),
     ).called(1);
   });

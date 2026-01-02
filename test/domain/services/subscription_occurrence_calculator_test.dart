@@ -14,6 +14,18 @@ void main() {
 
     expect(result.totalOccurrences, 5);
     expect(result.occurredOccurrences, 3);
+    expect(
+      result.dates,
+      equals(
+        [
+          DateTime(2024, 5, 1),
+          DateTime(2024, 5, 2),
+          DateTime(2024, 5, 3),
+          DateTime(2024, 5, 4),
+          DateTime(2024, 5, 5),
+        ],
+      ),
+    );
   });
 
   test('handles monthly subscriptions purchased before the range start', () {
@@ -27,6 +39,7 @@ void main() {
 
     expect(result.totalOccurrences, 1);
     expect(result.occurredOccurrences, 0);
+    expect(result.dates, equals([DateTime(2024, 5, 10)]));
   });
 
   test('returns zero when subscription starts after the range', () {
@@ -40,6 +53,7 @@ void main() {
 
     expect(result.totalOccurrences, 0);
     expect(result.occurredOccurrences, 0);
+    expect(result.dates, isEmpty);
   });
 
   test('treats all occurrences as paid when today is after the range', () {
@@ -53,5 +67,6 @@ void main() {
 
     expect(result.totalOccurrences, 1);
     expect(result.occurredOccurrences, 1);
+    expect(result.dates, equals([DateTime(2024, 4, 5)]));
   });
 }

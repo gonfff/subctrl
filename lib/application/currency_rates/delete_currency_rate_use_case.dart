@@ -8,10 +8,12 @@ class DeleteCurrencyRateUseCase {
   Future<void> call({
     required String baseCurrencyCode,
     required String quoteCurrencyCode,
+    required DateTime rateDate,
   }) {
     return _repository.deleteRate(
       baseCode: baseCurrencyCode,
       quoteCode: quoteCurrencyCode,
+      rateDate: rateDate,
     );
   }
 }

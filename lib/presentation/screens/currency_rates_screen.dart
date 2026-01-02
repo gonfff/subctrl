@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/currency_rate.dart';
+import 'package:subctrl/domain/utils/date_utils.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/viewmodels/currency_rates_view_model.dart';
@@ -58,7 +59,13 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
     final rates = List<CurrencyRate>.from(_viewModel.rates);
     switch (_sort) {
       case CurrencyRatesSort.currency:
-        rates.sort((a, b) => a.quoteCode.compareTo(b.quoteCode));
+        rates.sort((a, b) {
+          final codeCompare = a.quoteCode.compareTo(b.quoteCode);
+          if (codeCompare != 0) {
+            return codeCompare;
+          }
+          return b.fetchedAt.compareTo(a.fetchedAt);
+        });
         break;
       case CurrencyRatesSort.date:
         rates.sort((a, b) => b.fetchedAt.compareTo(a.fetchedAt));
@@ -166,17 +173,18 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
   Future<void> _addManualRate(List<Currency> quotes) async {
     final data = await _promptManualRate(quotes);
     if (data == null) return;
+    final normalizedDate = stripTime(data.date);
     final manualRate = CurrencyRate(
       baseCode: widget.baseCurrencyCode.toUpperCase(),
       quoteCode: data.quoteCode,
       rate: data.rate,
-      fetchedAt: data.date,
+      fetchedAt: normalizedDate,
     );
     await _viewModel.addManualRate(manualRate);
   }
 
   Future<void> _deleteRate(CurrencyRate rate) {
-    return _viewModel.deleteRate(rate.quoteCode);
+    return _viewModel.deleteRate(rate);
   }
 
   Future<_ManualRateData?> _promptManualRate(List<Currency> quotes) {
@@ -315,122 +323,128 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context).textTheme.textStyle;
     final background = CupertinoColors.systemBackground.resolveFrom(context);
-    return CupertinoPopupSurface(
-      child: Container(
-        color: background,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        height: 480,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(
-                        widget.localizations.settingsCurrencyRatesManualTitle,
+    final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: keyboardInset),
+      child: CupertinoPopupSurface(
+        child: Container(
+          color: background,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          height: 480,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          widget.localizations.settingsCurrencyRatesManualTitle,
+                          style: theme.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.localizations.settingsCurrencyRatesQuoteLabel,
                         style: theme.copyWith(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: CupertinoColors.systemGrey.resolveFrom(context),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.localizations.settingsCurrencyRatesQuoteLabel,
-                      style: theme.copyWith(
-                        fontSize: 13,
-                        color: CupertinoColors.systemGrey.resolveFrom(context),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 120,
-                      child: CupertinoPicker(
-                        itemExtent: 32,
-                        scrollController: _pickerController,
-                        onSelectedItemChanged: (index) {
-                          setState(() {
-                            _selectedCurrency = widget.quotes[index];
-                          });
-                        },
-                        children: widget.quotes
-                            .map(
-                              (currency) => Center(
-                                child: Text(
-                                  '${currency.code} - ${currency.name}',
-                                  style: theme,
+                      SizedBox(
+                        height: 120,
+                        child: CupertinoPicker(
+                          itemExtent: 32,
+                          scrollController: _pickerController,
+                          onSelectedItemChanged: (index) {
+                            setState(() {
+                              _selectedCurrency = widget.quotes[index];
+                            });
+                          },
+                          children: widget.quotes
+                              .map(
+                                (currency) => Center(
+                                  child: Text(
+                                    '${currency.code} - ${currency.name}',
+                                    style: theme,
+                                  ),
                                 ),
-                              ),
-                            )
-                            .toList(growable: false),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.localizations.settingsCurrencyRatesValueLabel,
-                      style: theme.copyWith(
-                        fontSize: 13,
-                        color: CupertinoColors.systemGrey.resolveFrom(context),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    CupertinoTextField(
-                      controller: _rateController,
-                      placeholder:
-                          '1 ${_selectedCurrency.code} = ? ${widget.baseCurrencyCode.toUpperCase()}',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.localizations.settingsCurrencyRatesDateLabel,
-                      style: theme.copyWith(
-                        fontSize: 13,
-                        color: CupertinoColors.systemGrey.resolveFrom(context),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 150,
-                      child: CupertinoDatePicker(
-                        mode: CupertinoDatePickerMode.date,
-                        initialDateTime: _selectedDate,
-                        maximumDate: DateTime.now().add(
-                          const Duration(days: 3650),
+                              )
+                              .toList(growable: false),
                         ),
-                        onDateTimeChanged: (value) {
-                          setState(() {
-                            _selectedDate = value;
-                          });
-                        },
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.localizations.settingsCurrencyRatesValueLabel,
+                        style: theme.copyWith(
+                          fontSize: 13,
+                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      CupertinoTextField(
+                        controller: _rateController,
+                        placeholder:
+                            '1 ${_selectedCurrency.code} = ? ${widget.baseCurrencyCode.toUpperCase()}',
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        widget.localizations.settingsCurrencyRatesDateLabel,
+                        style: theme.copyWith(
+                          fontSize: 13,
+                          color: CupertinoColors.systemGrey.resolveFrom(context),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 150,
+                        child: CupertinoDatePicker(
+                          mode: CupertinoDatePickerMode.date,
+                          initialDateTime: _selectedDate,
+                          maximumDate: DateTime.now().add(
+                            const Duration(days: 3650),
+                          ),
+                          onDateTimeChanged: (value) {
+                            setState(() {
+                              _selectedDate = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: CupertinoButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(widget.localizations.settingsClose),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: CupertinoButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(widget.localizations.settingsClose),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CupertinoButton.filled(
-                    onPressed: _canSubmit ? _submit : null,
-                    child: Text(widget.localizations.settingsCurrencyRatesAdd),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CupertinoButton.filled(
+                      onPressed: _canSubmit ? _submit : null,
+                      child: Text(widget.localizations.settingsCurrencyRatesAdd),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

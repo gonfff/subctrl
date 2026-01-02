@@ -268,7 +268,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
     _currencyRatesSubscription = _watchCurrencyRatesUseCase(baseCode).listen((
       rates,
     ) {
-      _rateMap = {for (final rate in rates) rate.quoteCode.toUpperCase(): rate};
+      _rateMap = _latestRatesFrom(rates);
       notifyListeners();
     });
   }
@@ -285,18 +285,18 @@ class SubscriptionsViewModel extends ChangeNotifier {
     _isFetchingRates = true;
     try {
       final existingRates = await _getCurrencyRatesUseCase(baseCode);
-      final storedQuotes = existingRates
-          .map((rate) => rate.quoteCode.toUpperCase())
-          .toSet();
+      final latestExisting = _latestRatesFrom(existingRates);
+      final storedQuotes = latestExisting.keys.toSet();
       final subscriptionQuotes = _subscriptions
           .map((subscription) => subscription.currency.toUpperCase())
           .where((code) => code != baseCode)
           .toSet();
       final missingQuotes = subscriptionQuotes.difference(storedQuotes);
       DateTime? latestUpdate;
-      for (final rate in existingRates) {
-        if (latestUpdate == null || rate.fetchedAt.isAfter(latestUpdate)) {
-          latestUpdate = rate.fetchedAt;
+      for (final entry in latestExisting.values) {
+        if (latestUpdate == null ||
+            entry.fetchedAt.isAfter(latestUpdate)) {
+          latestUpdate = entry.fetchedAt;
         }
       }
       final nowUtc = DateTime.now().toUtc();
@@ -329,6 +329,18 @@ class SubscriptionsViewModel extends ChangeNotifier {
     } finally {
       _isFetchingRates = false;
     }
+  }
+
+  Map<String, CurrencyRate> _latestRatesFrom(List<CurrencyRate> rates) {
+    final Map<String, CurrencyRate> result = {};
+    for (final rate in rates) {
+      final code = rate.quoteCode.toUpperCase();
+      final existing = result[code];
+      if (existing == null || rate.fetchedAt.isAfter(existing.fetchedAt)) {
+        result[code] = rate;
+      }
+    }
+    return result;
   }
 
   @override

@@ -1232,6 +1232,17 @@ class $CurrencyRatesTableTable extends CurrencyRatesTable
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _rateDateMeta = const VerificationMeta(
+    'rateDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> rateDate = GeneratedColumn<DateTime>(
+    'rate_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
     'fetchedAt',
   );
@@ -1244,7 +1255,13 @@ class $CurrencyRatesTableTable extends CurrencyRatesTable
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [baseCode, quoteCode, rate, fetchedAt];
+  List<GeneratedColumn> get $columns => [
+    baseCode,
+    quoteCode,
+    rate,
+    rateDate,
+    fetchedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1281,6 +1298,14 @@ class $CurrencyRatesTableTable extends CurrencyRatesTable
     } else if (isInserting) {
       context.missing(_rateMeta);
     }
+    if (data.containsKey('rate_date')) {
+      context.handle(
+        _rateDateMeta,
+        rateDate.isAcceptableOrUnknown(data['rate_date']!, _rateDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rateDateMeta);
+    }
     if (data.containsKey('fetched_at')) {
       context.handle(
         _fetchedAtMeta,
@@ -1293,7 +1318,7 @@ class $CurrencyRatesTableTable extends CurrencyRatesTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {baseCode, quoteCode};
+  Set<GeneratedColumn> get $primaryKey => {baseCode, quoteCode, rateDate};
   @override
   CurrencyRatesTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -1309,6 +1334,10 @@ class $CurrencyRatesTableTable extends CurrencyRatesTable
       rate: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}rate'],
+      )!,
+      rateDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}rate_date'],
       )!,
       fetchedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -1328,11 +1357,13 @@ class CurrencyRatesTableData extends DataClass
   final String baseCode;
   final String quoteCode;
   final double rate;
+  final DateTime rateDate;
   final DateTime fetchedAt;
   const CurrencyRatesTableData({
     required this.baseCode,
     required this.quoteCode,
     required this.rate,
+    required this.rateDate,
     required this.fetchedAt,
   });
   @override
@@ -1341,6 +1372,7 @@ class CurrencyRatesTableData extends DataClass
     map['base_code'] = Variable<String>(baseCode);
     map['quote_code'] = Variable<String>(quoteCode);
     map['rate'] = Variable<double>(rate);
+    map['rate_date'] = Variable<DateTime>(rateDate);
     map['fetched_at'] = Variable<DateTime>(fetchedAt);
     return map;
   }
@@ -1350,6 +1382,7 @@ class CurrencyRatesTableData extends DataClass
       baseCode: Value(baseCode),
       quoteCode: Value(quoteCode),
       rate: Value(rate),
+      rateDate: Value(rateDate),
       fetchedAt: Value(fetchedAt),
     );
   }
@@ -1363,6 +1396,7 @@ class CurrencyRatesTableData extends DataClass
       baseCode: serializer.fromJson<String>(json['baseCode']),
       quoteCode: serializer.fromJson<String>(json['quoteCode']),
       rate: serializer.fromJson<double>(json['rate']),
+      rateDate: serializer.fromJson<DateTime>(json['rateDate']),
       fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
     );
   }
@@ -1373,6 +1407,7 @@ class CurrencyRatesTableData extends DataClass
       'baseCode': serializer.toJson<String>(baseCode),
       'quoteCode': serializer.toJson<String>(quoteCode),
       'rate': serializer.toJson<double>(rate),
+      'rateDate': serializer.toJson<DateTime>(rateDate),
       'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
     };
   }
@@ -1381,11 +1416,13 @@ class CurrencyRatesTableData extends DataClass
     String? baseCode,
     String? quoteCode,
     double? rate,
+    DateTime? rateDate,
     DateTime? fetchedAt,
   }) => CurrencyRatesTableData(
     baseCode: baseCode ?? this.baseCode,
     quoteCode: quoteCode ?? this.quoteCode,
     rate: rate ?? this.rate,
+    rateDate: rateDate ?? this.rateDate,
     fetchedAt: fetchedAt ?? this.fetchedAt,
   );
   CurrencyRatesTableData copyWithCompanion(CurrencyRatesTableCompanion data) {
@@ -1393,6 +1430,7 @@ class CurrencyRatesTableData extends DataClass
       baseCode: data.baseCode.present ? data.baseCode.value : this.baseCode,
       quoteCode: data.quoteCode.present ? data.quoteCode.value : this.quoteCode,
       rate: data.rate.present ? data.rate.value : this.rate,
+      rateDate: data.rateDate.present ? data.rateDate.value : this.rateDate,
       fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
     );
   }
@@ -1403,13 +1441,15 @@ class CurrencyRatesTableData extends DataClass
           ..write('baseCode: $baseCode, ')
           ..write('quoteCode: $quoteCode, ')
           ..write('rate: $rate, ')
+          ..write('rateDate: $rateDate, ')
           ..write('fetchedAt: $fetchedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(baseCode, quoteCode, rate, fetchedAt);
+  int get hashCode =>
+      Object.hash(baseCode, quoteCode, rate, rateDate, fetchedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1417,6 +1457,7 @@ class CurrencyRatesTableData extends DataClass
           other.baseCode == this.baseCode &&
           other.quoteCode == this.quoteCode &&
           other.rate == this.rate &&
+          other.rateDate == this.rateDate &&
           other.fetchedAt == this.fetchedAt);
 }
 
@@ -1425,12 +1466,14 @@ class CurrencyRatesTableCompanion
   final Value<String> baseCode;
   final Value<String> quoteCode;
   final Value<double> rate;
+  final Value<DateTime> rateDate;
   final Value<DateTime> fetchedAt;
   final Value<int> rowid;
   const CurrencyRatesTableCompanion({
     this.baseCode = const Value.absent(),
     this.quoteCode = const Value.absent(),
     this.rate = const Value.absent(),
+    this.rateDate = const Value.absent(),
     this.fetchedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1438,16 +1481,19 @@ class CurrencyRatesTableCompanion
     required String baseCode,
     required String quoteCode,
     required double rate,
+    required DateTime rateDate,
     required DateTime fetchedAt,
     this.rowid = const Value.absent(),
   }) : baseCode = Value(baseCode),
        quoteCode = Value(quoteCode),
        rate = Value(rate),
+       rateDate = Value(rateDate),
        fetchedAt = Value(fetchedAt);
   static Insertable<CurrencyRatesTableData> custom({
     Expression<String>? baseCode,
     Expression<String>? quoteCode,
     Expression<double>? rate,
+    Expression<DateTime>? rateDate,
     Expression<DateTime>? fetchedAt,
     Expression<int>? rowid,
   }) {
@@ -1455,6 +1501,7 @@ class CurrencyRatesTableCompanion
       if (baseCode != null) 'base_code': baseCode,
       if (quoteCode != null) 'quote_code': quoteCode,
       if (rate != null) 'rate': rate,
+      if (rateDate != null) 'rate_date': rateDate,
       if (fetchedAt != null) 'fetched_at': fetchedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1464,6 +1511,7 @@ class CurrencyRatesTableCompanion
     Value<String>? baseCode,
     Value<String>? quoteCode,
     Value<double>? rate,
+    Value<DateTime>? rateDate,
     Value<DateTime>? fetchedAt,
     Value<int>? rowid,
   }) {
@@ -1471,6 +1519,7 @@ class CurrencyRatesTableCompanion
       baseCode: baseCode ?? this.baseCode,
       quoteCode: quoteCode ?? this.quoteCode,
       rate: rate ?? this.rate,
+      rateDate: rateDate ?? this.rateDate,
       fetchedAt: fetchedAt ?? this.fetchedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1488,6 +1537,9 @@ class CurrencyRatesTableCompanion
     if (rate.present) {
       map['rate'] = Variable<double>(rate.value);
     }
+    if (rateDate.present) {
+      map['rate_date'] = Variable<DateTime>(rateDate.value);
+    }
     if (fetchedAt.present) {
       map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
     }
@@ -1503,6 +1555,7 @@ class CurrencyRatesTableCompanion
           ..write('baseCode: $baseCode, ')
           ..write('quoteCode: $quoteCode, ')
           ..write('rate: $rate, ')
+          ..write('rateDate: $rateDate, ')
           ..write('fetchedAt: $fetchedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2459,6 +2512,7 @@ typedef $$CurrencyRatesTableTableCreateCompanionBuilder =
       required String baseCode,
       required String quoteCode,
       required double rate,
+      required DateTime rateDate,
       required DateTime fetchedAt,
       Value<int> rowid,
     });
@@ -2467,6 +2521,7 @@ typedef $$CurrencyRatesTableTableUpdateCompanionBuilder =
       Value<String> baseCode,
       Value<String> quoteCode,
       Value<double> rate,
+      Value<DateTime> rateDate,
       Value<DateTime> fetchedAt,
       Value<int> rowid,
     });
@@ -2492,6 +2547,11 @@ class $$CurrencyRatesTableTableFilterComposer
 
   ColumnFilters<double> get rate => $composableBuilder(
     column: $table.rate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get rateDate => $composableBuilder(
+    column: $table.rateDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2525,6 +2585,11 @@ class $$CurrencyRatesTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get rateDate => $composableBuilder(
+    column: $table.rateDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
     column: $table.fetchedAt,
     builder: (column) => ColumnOrderings(column),
@@ -2548,6 +2613,9 @@ class $$CurrencyRatesTableTableAnnotationComposer
 
   GeneratedColumn<double> get rate =>
       $composableBuilder(column: $table.rate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get rateDate =>
+      $composableBuilder(column: $table.rateDate, builder: (column) => column);
 
   GeneratedColumn<DateTime> get fetchedAt =>
       $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
@@ -2596,12 +2664,14 @@ class $$CurrencyRatesTableTableTableManager
                 Value<String> baseCode = const Value.absent(),
                 Value<String> quoteCode = const Value.absent(),
                 Value<double> rate = const Value.absent(),
+                Value<DateTime> rateDate = const Value.absent(),
                 Value<DateTime> fetchedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CurrencyRatesTableCompanion(
                 baseCode: baseCode,
                 quoteCode: quoteCode,
                 rate: rate,
+                rateDate: rateDate,
                 fetchedAt: fetchedAt,
                 rowid: rowid,
               ),
@@ -2610,12 +2680,14 @@ class $$CurrencyRatesTableTableTableManager
                 required String baseCode,
                 required String quoteCode,
                 required double rate,
+                required DateTime rateDate,
                 required DateTime fetchedAt,
                 Value<int> rowid = const Value.absent(),
               }) => CurrencyRatesTableCompanion.insert(
                 baseCode: baseCode,
                 quoteCode: quoteCode,
                 rate: rate,
+                rateDate: rateDate,
                 fetchedAt: fetchedAt,
                 rowid: rowid,
               ),

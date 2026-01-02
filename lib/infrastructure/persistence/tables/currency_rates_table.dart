@@ -4,8 +4,9 @@ class CurrencyRatesTable extends Table {
   TextColumn get baseCode => text()();
   TextColumn get quoteCode => text()();
   RealColumn get rate => real()();
+  DateTimeColumn get rateDate => dateTime()();
   DateTimeColumn get fetchedAt => dateTime()();
 
   @override
-  Set<Column> get primaryKey => {baseCode, quoteCode};
+  Set<Column> get primaryKey => {baseCode, quoteCode, rateDate};
 }

@@ -142,58 +142,65 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     try {
       return await showCupertinoDialog<_NewCurrencyData>(
         context: context,
+        barrierDismissible: true,
         builder: (context) {
           final localizations = AppLocalizations.of(context);
           return StatefulBuilder(
             builder: (context, setModalState) {
-              return CupertinoAlertDialog(
-                title: Text(localizations.settingsCurrenciesAddCustom),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 8),
-                    _DialogTextField(
-                      controller: codeController,
-                      placeholder: localizations.settingsCurrencyCodeLabel,
-                      textCapitalization: TextCapitalization.characters,
-                      onChanged: (_) => setModalState(() {}),
+              final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+              return AnimatedPadding(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                padding: EdgeInsets.only(bottom: keyboardInset),
+                child: CupertinoAlertDialog(
+                  title: Text(localizations.settingsCurrenciesAddCustom),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 8),
+                      _DialogTextField(
+                        controller: codeController,
+                        placeholder: localizations.settingsCurrencyCodeLabel,
+                        textCapitalization: TextCapitalization.characters,
+                        onChanged: (_) => setModalState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+                      _DialogTextField(
+                        controller: nameController,
+                        placeholder: localizations.settingsCurrencyNameLabel,
+                        onChanged: (_) => setModalState(() {}),
+                      ),
+                      const SizedBox(height: 8),
+                      _DialogTextField(
+                        controller: symbolController,
+                        placeholder: localizations.settingsCurrencySymbolLabel,
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    CupertinoDialogAction(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(localizations.settingsClose),
                     ),
-                    const SizedBox(height: 8),
-                    _DialogTextField(
-                      controller: nameController,
-                      placeholder: localizations.settingsCurrencyNameLabel,
-                      onChanged: (_) => setModalState(() {}),
-                    ),
-                    const SizedBox(height: 8),
-                    _DialogTextField(
-                      controller: symbolController,
-                      placeholder: localizations.settingsCurrencySymbolLabel,
+                    CupertinoDialogAction(
+                      isDefaultAction: true,
+                      onPressed: isValid()
+                          ? () {
+                              Navigator.of(context).pop(
+                                _NewCurrencyData(
+                                  code: codeController.text.trim(),
+                                  name: nameController.text.trim(),
+                                  symbol: symbolController.text.trim().isEmpty
+                                      ? null
+                                      : symbolController.text.trim(),
+                                ),
+                              );
+                            }
+                          : null,
+                      child: Text(localizations.settingsCurrencyAddAction),
                     ),
                   ],
                 ),
-                actions: [
-                  CupertinoDialogAction(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(localizations.settingsClose),
-                  ),
-                  CupertinoDialogAction(
-                    isDefaultAction: true,
-                    onPressed: isValid()
-                        ? () {
-                            Navigator.of(context).pop(
-                              _NewCurrencyData(
-                                code: codeController.text.trim(),
-                                name: nameController.text.trim(),
-                                symbol: symbolController.text.trim().isEmpty
-                                    ? null
-                                    : symbolController.text.trim(),
-                              ),
-                            );
-                          }
-                        : null,
-                    child: Text(localizations.settingsCurrencyAddAction),
-                  ),
-                ],
               );
             },
           );

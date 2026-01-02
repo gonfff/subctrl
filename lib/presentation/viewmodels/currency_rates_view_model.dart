@@ -52,10 +52,17 @@ class CurrencyRatesViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteRate(String quoteCurrencyCode) {
+  Future<void> deleteRate(CurrencyRate rate) {
+    final localFetched = rate.fetchedAt.toLocal();
+    final normalizedDate = DateTime(
+      localFetched.year,
+      localFetched.month,
+      localFetched.day,
+    );
     return _deleteCurrencyRateUseCase(
       baseCurrencyCode: _baseCurrencyCode,
-      quoteCurrencyCode: quoteCurrencyCode,
+      quoteCurrencyCode: rate.quoteCode,
+      rateDate: normalizedDate,
     );
   }
 

@@ -65,7 +65,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   StreamSubscription<List<Tag>>? _tagsSubscription;
   StreamSubscription<List<Subscription>>? _subscriptionsSubscription;
   StreamSubscription<List<CurrencyRate>>? _currencyRatesSubscription;
-  Map<String, double> _rateMap = const <String, double>{};
+  Map<String, double> _latestRateMap = const <String, double>{};
+  Map<String, List<_HistoricalRateEntry>> _rateHistory =
+      const <String, List<_HistoricalRateEntry>>{};
 
   @override
   void initState() {
@@ -319,7 +321,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return _SubscriptionAmounts(totalAmount: total, paidAmount: paid);
   }
 
-  double _subscriptionAmountInBaseCurrency(Subscription subscription) {
+  double _convertAmountForOccurrence(
+    Subscription subscription,
+    DateTime occurrenceDate,
+    DateTime today,
+  ) {
     final baseCode = widget.baseCurrencyCode?.toUpperCase();
     if (baseCode == null || baseCode.isEmpty) {
       return subscription.amount;
@@ -328,7 +334,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (quoteCode == baseCode) {
       return subscription.amount;
     }
-    final rate = _rateMap[quoteCode];
+    final rate = _rateForDate(quoteCode, occurrenceDate, today);
     if (rate == null) {
       return subscription.amount;
     }
@@ -342,18 +348,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   ) {
     final occurrences =
         _subscriptionOccurrencesInRange(subscription, range, today);
-    if (occurrences.totalOccurrences == 0) {
+    if (occurrences.dates.isEmpty) {
       return _SubscriptionAmounts.empty;
     }
-    final amountPerOccurrence =
-        _subscriptionAmountInBaseCurrency(subscription);
-    if (amountPerOccurrence <= 0) {
+    var totalAmount = 0.0;
+    var paidAmount = 0.0;
+    for (final occurrenceDate in occurrences.dates) {
+      final converted =
+          _convertAmountForOccurrence(subscription, occurrenceDate, today);
+      if (converted <= 0) {
+        continue;
+      }
+      totalAmount += converted;
+      if (!occurrenceDate.isAfter(today)) {
+        paidAmount += converted;
+      }
+    }
+    if (totalAmount <= 0 && paidAmount <= 0) {
       return _SubscriptionAmounts.empty;
     }
     return _SubscriptionAmounts(
-      totalAmount: amountPerOccurrence * occurrences.totalOccurrences,
-      paidAmount: amountPerOccurrence * occurrences.occurredOccurrences,
+      totalAmount: totalAmount,
+      paidAmount: paidAmount,
     );
+  }
+
+  double? _rateForDate(
+    String quoteCurrencyCode,
+    DateTime occurrenceDate,
+    DateTime today,
+  ) {
+    final normalizedQuote = quoteCurrencyCode.toUpperCase();
+    final normalizedOccurrence = stripTime(occurrenceDate);
+    final todayDate = stripTime(today);
+    if (normalizedOccurrence.isAfter(todayDate)) {
+      return _latestRateMap[normalizedQuote];
+    }
+    final history = _rateHistory[normalizedQuote];
+    if (history == null || history.isEmpty) {
+      return _latestRateMap[normalizedQuote];
+    }
+    _HistoricalRateEntry? candidate;
+    for (final entry in history) {
+      if (entry.date.isAfter(normalizedOccurrence)) {
+        break;
+      }
+      candidate = entry;
+    }
+    if (candidate != null) {
+      return candidate.value;
+    }
+    return history.first.value;
   }
 
   SubscriptionOccurrences _subscriptionOccurrencesInRange(
@@ -391,9 +436,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     _currencyRatesSubscription?.cancel();
     final baseCode = widget.baseCurrencyCode?.toUpperCase();
     if (baseCode == null || baseCode.isEmpty) {
-      if (_rateMap.isNotEmpty) {
+      if (_latestRateMap.isNotEmpty || _rateHistory.isNotEmpty) {
         setState(() {
-          _rateMap = const <String, double>{};
+          _latestRateMap = const <String, double>{};
+          _rateHistory = const <String, List<_HistoricalRateEntry>>{};
         });
       }
       return;
@@ -402,11 +448,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         .watchCurrencyRatesUseCase(baseCode)
         .listen((rates) {
           if (!mounted) return;
+          final history = <String, List<_HistoricalRateEntry>>{};
+          final latestRates = <String, CurrencyRate>{};
+          for (final rate in rates) {
+            final quote = rate.quoteCode.toUpperCase();
+            final normalizedDate = stripTime(rate.fetchedAt.toLocal());
+            final entries = history.putIfAbsent(
+              quote,
+              () => <_HistoricalRateEntry>[],
+            );
+            entries.add(
+              _HistoricalRateEntry(
+                date: normalizedDate,
+                value: rate.rate,
+              ),
+            );
+            final existing = latestRates[quote];
+            if (existing == null || rate.fetchedAt.isAfter(existing.fetchedAt)) {
+              latestRates[quote] = rate;
+            }
+          }
+          for (final entries in history.values) {
+            entries.sort((a, b) => a.date.compareTo(b.date));
+          }
           setState(() {
-            _rateMap = {
-              for (final rate in rates)
-                rate.quoteCode.toUpperCase(): rate.rate,
-            };
+            _rateHistory = history.map(
+              (key, value) => MapEntry(key, List.unmodifiable(value)),
+            );
+            _latestRateMap = latestRates.map(
+              (key, value) => MapEntry(key, value.rate),
+            );
           });
         });
   }
@@ -483,6 +554,13 @@ class _DateRange {
 
   final DateTime start;
   final DateTime end;
+}
+
+class _HistoricalRateEntry {
+  const _HistoricalRateEntry({required this.date, required this.value});
+
+  final DateTime date;
+  final double value;
 }
 
 class _AggregatedBreakdown {

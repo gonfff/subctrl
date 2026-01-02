@@ -91,12 +91,22 @@ void main() {
       () => repository.deleteRate(
         baseCode: any(named: 'baseCode'),
         quoteCode: any(named: 'quoteCode'),
+        rateDate: any(named: 'rateDate'),
       ),
     ).thenAnswer((_) async {});
     final useCase = DeleteCurrencyRateUseCase(repository);
-    await useCase(baseCurrencyCode: 'usd', quoteCurrencyCode: 'eur');
+    final rateDate = DateTime(2024, 1, 2);
+    await useCase(
+      baseCurrencyCode: 'usd',
+      quoteCurrencyCode: 'eur',
+      rateDate: rateDate,
+    );
     verify(
-      () => repository.deleteRate(baseCode: 'usd', quoteCode: 'eur'),
+      () => repository.deleteRate(
+        baseCode: 'usd',
+        quoteCode: 'eur',
+        rateDate: rateDate,
+      ),
     ).called(1);
   });
 

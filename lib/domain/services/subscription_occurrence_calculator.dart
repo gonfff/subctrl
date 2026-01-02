@@ -2,16 +2,22 @@ import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/domain/utils/date_utils.dart';
 
 class SubscriptionOccurrences {
-  const SubscriptionOccurrences({
-    required this.totalOccurrences,
+  SubscriptionOccurrences({
+    required List<DateTime> dates,
+    required this.occurredOccurrences,
+  }) : dates = List.unmodifiable(dates);
+
+  const SubscriptionOccurrences._({
+    required this.dates,
     required this.occurredOccurrences,
   });
 
-  final int totalOccurrences;
+  final List<DateTime> dates;
+  int get totalOccurrences => dates.length;
   final int occurredOccurrences;
 
-  static const empty = SubscriptionOccurrences(
-    totalOccurrences: 0,
+  static const empty = SubscriptionOccurrences._(
+    dates: <DateTime>[],
     occurredOccurrences: 0,
   );
 }
@@ -48,10 +54,10 @@ SubscriptionOccurrences calculateSubscriptionOccurrences({
     }
   }
 
-  var total = 0;
+  final occurrences = <DateTime>[];
   var occurred = 0;
   while (!occurrence.isAfter(normalizedEnd)) {
-    total++;
+    occurrences.add(occurrence);
     if (!occurrence.isAfter(normalizedToday)) {
       occurred++;
     }
@@ -62,8 +68,12 @@ SubscriptionOccurrences calculateSubscriptionOccurrences({
     occurrence = next;
   }
 
+  if (occurrences.isEmpty) {
+    return SubscriptionOccurrences.empty;
+  }
+
   return SubscriptionOccurrences(
-    totalOccurrences: total,
+    dates: occurrences,
     occurredOccurrences: occurred,
   );
 }

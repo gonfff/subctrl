@@ -22,6 +22,7 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
         baseCode: Value(normalizedBase),
         quoteCode: Value(rate.quoteCode.toUpperCase()),
         rate: Value(rate.rate),
+        rateDate: Value(_normalizeDate(rate.fetchedAt)),
         fetchedAt: Value(rate.fetchedAt),
       ),
     );
@@ -62,6 +63,26 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
   }
 
   @override
+  Future<CurrencyRate?> findRateForDate({
+    required String baseCode,
+    required String quoteCode,
+    required DateTime rateDate,
+  }) async {
+    final row = await _dao.findRateForDate(
+      baseCode: baseCode,
+      quoteCode: quoteCode,
+      rateDate: rateDate,
+    );
+    if (row == null) return null;
+    return CurrencyRate(
+      baseCode: row.baseCode,
+      quoteCode: row.quoteCode,
+      rate: row.rate,
+      fetchedAt: row.fetchedAt,
+    );
+  }
+
+  @override
   Future<void> clearRates(String baseCode) {
     return _dao.deleteRates(baseCode);
   }
@@ -70,10 +91,12 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
   Future<void> deleteRate({
     required String baseCode,
     required String quoteCode,
+    required DateTime rateDate,
   }) {
     return _dao.deleteRate(
       baseCode: baseCode,
       quoteCode: quoteCode,
+      rateDate: rateDate,
     );
   }
 
@@ -93,5 +116,9 @@ class DriftCurrencyRateRepository implements CurrencyRateRepository {
               )
               .toList(growable: false),
         );
+  }
+
+  DateTime _normalizeDate(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
   }
 }

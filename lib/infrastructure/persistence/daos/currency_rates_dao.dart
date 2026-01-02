@@ -23,14 +23,26 @@ class CurrencyRatesDao {
     final normalized = baseCode.toUpperCase();
     return (_database.select(_database.currencyRatesTable)
           ..where((tbl) => tbl.baseCode.equals(normalized))
-          ..orderBy([(t) => OrderingTerm(expression: t.quoteCode)]))
+          ..orderBy([
+            (t) => OrderingTerm(
+              expression: t.rateDate,
+              mode: OrderingMode.desc,
+            ),
+            (t) => OrderingTerm(expression: t.quoteCode),
+          ]))
         .get();
   }
 
   Stream<List<CurrencyRatesTableData>> watchRates(String baseCode) {
     final normalized = baseCode.toUpperCase();
     return (_database.select(_database.currencyRatesTable)
-          ..where((tbl) => tbl.baseCode.equals(normalized)))
+          ..where((tbl) => tbl.baseCode.equals(normalized))
+          ..orderBy([
+            (t) => OrderingTerm(
+              expression: t.rateDate,
+              mode: OrderingMode.desc,
+            ),
+          ]))
         .watch();
   }
 
@@ -45,6 +57,31 @@ class CurrencyRatesDao {
             (tbl) =>
                 tbl.baseCode.equals(normalizedBase) &
                 tbl.quoteCode.equals(normalizedQuote),
+          )
+          ..orderBy([
+            (t) => OrderingTerm(
+              expression: t.rateDate,
+              mode: OrderingMode.desc,
+            ),
+          ])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  Future<CurrencyRatesTableData?> findRateForDate({
+    required String baseCode,
+    required String quoteCode,
+    required DateTime rateDate,
+  }) {
+    final normalizedBase = baseCode.toUpperCase();
+    final normalizedQuote = quoteCode.toUpperCase();
+    final normalizedDate = DateTime(rateDate.year, rateDate.month, rateDate.day);
+    return (_database.select(_database.currencyRatesTable)
+          ..where(
+            (tbl) =>
+                tbl.baseCode.equals(normalizedBase) &
+                tbl.quoteCode.equals(normalizedQuote) &
+                tbl.rateDate.equals(normalizedDate),
           ))
         .getSingleOrNull();
   }
@@ -59,14 +96,17 @@ class CurrencyRatesDao {
   Future<void> deleteRate({
     required String baseCode,
     required String quoteCode,
+    required DateTime rateDate,
   }) {
     final normalizedBase = baseCode.toUpperCase();
     final normalizedQuote = quoteCode.toUpperCase();
+    final normalizedDate = DateTime(rateDate.year, rateDate.month, rateDate.day);
     return (_database.delete(_database.currencyRatesTable)
           ..where(
             (tbl) =>
                 tbl.baseCode.equals(normalizedBase) &
-                tbl.quoteCode.equals(normalizedQuote),
+                tbl.quoteCode.equals(normalizedQuote) &
+                tbl.rateDate.equals(normalizedDate),
           ))
         .go();
   }

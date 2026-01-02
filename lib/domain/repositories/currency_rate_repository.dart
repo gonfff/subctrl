@@ -13,11 +13,18 @@ abstract class CurrencyRateRepository {
     required String quoteCode,
   });
 
+  Future<CurrencyRate?> findRateForDate({
+    required String baseCode,
+    required String quoteCode,
+    required DateTime rateDate,
+  });
+
   Future<void> clearRates(String baseCode);
 
   Future<void> deleteRate({
     required String baseCode,
     required String quoteCode,
+    required DateTime rateDate,
   });
 
   Stream<List<CurrencyRate>> watchRates(String baseCode);
