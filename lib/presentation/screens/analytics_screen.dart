@@ -271,10 +271,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  List<Subscription> _filteredSubscriptions(
-    _DateRange range,
-    DateTime today,
-  ) {
+  List<Subscription> _filteredSubscriptions(_DateRange range, DateTime today) {
     return _subscriptions.where((subscription) {
       if (_selectedTagIds.isNotEmpty) {
         final tagId = subscription.tagId;
@@ -322,8 +319,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     var total = 0.0;
     var paid = 0.0;
     for (final subscription in subscriptions) {
-      final amounts =
-          _subscriptionAmountsForRange(subscription, range, today);
+      final amounts = _subscriptionAmountsForRange(subscription, range, today);
       total += amounts.totalAmount;
       paid += amounts.paidAmount;
     }
@@ -355,16 +351,22 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     _DateRange range,
     DateTime today,
   ) {
-    final occurrences =
-        _subscriptionOccurrencesInRange(subscription, range, today);
+    final occurrences = _subscriptionOccurrencesInRange(
+      subscription,
+      range,
+      today,
+    );
     if (occurrences.dates.isEmpty) {
       return _SubscriptionAmounts.empty;
     }
     var totalAmount = 0.0;
     var paidAmount = 0.0;
     for (final occurrenceDate in occurrences.dates) {
-      final converted =
-          _convertAmountForOccurrence(subscription, occurrenceDate, today);
+      final converted = _convertAmountForOccurrence(
+        subscription,
+        occurrenceDate,
+        today,
+      );
       if (converted <= 0) {
         continue;
       }
@@ -436,8 +438,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     _DateRange range,
     DateTime today,
   ) {
-    final occurrences =
-        _subscriptionOccurrencesInRange(subscription, range, today);
+    final occurrences = _subscriptionOccurrencesInRange(
+      subscription,
+      range,
+      today,
+    );
     return occurrences.totalOccurrences > 0;
   }
 
@@ -467,13 +472,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               () => <_HistoricalRateEntry>[],
             );
             entries.add(
-              _HistoricalRateEntry(
-                date: normalizedDate,
-                value: rate.rate,
-              ),
+              _HistoricalRateEntry(date: normalizedDate, value: rate.rate),
             );
             final existing = latestRates[quote];
-            if (existing == null || rate.fetchedAt.isAfter(existing.fetchedAt)) {
+            if (existing == null ||
+                rate.fetchedAt.isAfter(existing.fetchedAt)) {
               latestRates[quote] = rate;
             }
           }
@@ -505,17 +508,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           : null;
       final shouldGroupByTag = aggregateByTags && tag != null;
       final key = shouldGroupByTag
-          ? 'tag-${tag!.id}'
+          ? 'tag-${tag.id}'
           : 'subscription-${subscription.id ?? subscription.name}';
-      final label = shouldGroupByTag ? tag!.name : subscription.name;
+      final label = shouldGroupByTag ? tag.name : subscription.name;
       final color = tag != null
-          ? colorFromHex(
-              tag.colorHex,
-              fallbackColor: _fallbackColors.first,
-            )
+          ? colorFromHex(tag.colorHex, fallbackColor: _fallbackColors.first)
           : _colorForLabel(label);
-      final amounts =
-          _subscriptionAmountsForRange(subscription, range, today);
+      final amounts = _subscriptionAmountsForRange(subscription, range, today);
       if (amounts.totalAmount <= 0) continue;
       final existing = totals[key];
       if (existing == null) {
@@ -543,16 +542,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   ) {
     final statusDate = stripTime(subscription.statusChangedAt);
     if (subscription.isActive) {
-      final adjustedStart =
-          statusDate.isAfter(range.start) ? statusDate : range.start;
+      final adjustedStart = statusDate.isAfter(range.start)
+          ? statusDate
+          : range.start;
       if (adjustedStart.isAfter(range.end)) {
         return null;
       }
       return _DateRange(start: adjustedStart, end: range.end);
     }
     final inactiveEnd = statusDate.subtract(const Duration(days: 1));
-    final adjustedEnd =
-        inactiveEnd.isBefore(range.end) ? inactiveEnd : range.end;
+    final adjustedEnd = inactiveEnd.isBefore(range.end)
+        ? inactiveEnd
+        : range.end;
     if (adjustedEnd.isBefore(range.start)) {
       return null;
     }
