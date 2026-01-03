@@ -1,0 +1,37 @@
+name: Publish Docs
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Sync docs dependencies
+        run: cd docs && uv sync
+      - name: Build site
+        run: cd docs && uv run mkdocs build --strict
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/site
+
+  docs-deploy:
+    runs-on: ubuntu-latest
+    needs: docs-build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

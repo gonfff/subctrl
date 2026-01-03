@@ -1,0 +1,27 @@
+site_name: Subctrl Docs
+site_description: "Docs for publishing Subctrl on App Store"
+site_url: https://gonfff.github.io/subctrl
+repo_url: https://github.com/gonfff/subctrl
+repo_name: subctrl
+docs_dir: pages
+site_dir: site
+nav:
+  - Home: index.md
+  - Policy:
+    - Privacy Policy (EN): policy-en.md
+    - Политика конфиденциальности (RU): policy-ru.md
+  - Support:
+    - Support Subctrl (EN): support-en.md
+    - Поддержка Subctrl (RU): support-ru.md
+
+theme:
+  name: material
+  language: en
+  favicon: assets/favicon-32x32.png
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.top
+markdown_extensions:
+  - toc:
+      permalink: true
