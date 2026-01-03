@@ -69,6 +69,17 @@ lib/
 4. **Configure notifications** (optional): ensure the iOS simulator/device has
    notification permissions enabled so local reminders can fire.
 
+## GitHub Pages Policies
+
+Static policy/support pages for App Store review live in `docs/`. The folder now
+contains a minimal Jekyll setup (`_config.yml`, `_layouts`, and `assets`) so
+Markdown pages gain HTML wrappers when GitHub Pages builds the `gh-pages`
+branch. The `Publish Docs` workflow pushes the folder to `gh-pages` only when a
+commit touching `docs/` lands on `master`, so publishing simply means editing
+Markdown with the required front matter (`layout`, `title`, `permalink`) and
+pushing your change. Preview the pages locally with any static server (they
+render as plain Markdown locally) or let GitHub Pages handle the Jekyll build.
+
 ## Testing
 
 All unit and widget tests run through `flutter test --coverage`, and coverage

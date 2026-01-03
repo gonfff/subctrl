@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-
 import 'package:subctrl/presentation/viewmodels/analytics_view_model.dart';
 
 class AnalyticsBarData {
@@ -72,17 +71,17 @@ class _BarRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = CupertinoTheme.of(context).textTheme.textStyle;
-    final rawDisplayTotal =
-        showFullPeriodTotals ? item.total : item.paid;
+    final rawDisplayTotal = showFullPeriodTotals ? item.total : item.paid;
     final displayTotal = rawDisplayTotal <= 0 ? 0.0 : rawDisplayTotal;
-    final totalFactor = displayTotal <= 0
-        ? 0
-        : (displayTotal / maxTotal).clamp(0.0, 1.0);
+    final totalFactor = calculateAnalyticsBarWidthFactor(
+      displayTotal: displayTotal,
+      maxTotal: maxTotal,
+    );
     final paidFactor = !showFullPeriodTotals
         ? 1.0
         : item.total <= 0
-            ? 0.0
-            : (item.paid / item.total).clamp(0.0, 1.0);
+        ? 0.0
+        : (item.paid / item.total).clamp(0.0, 1.0);
     final paidAmount = showFullPeriodTotals
         ? item.paid.clamp(0.0, item.total).toDouble()
         : displayTotal;
@@ -90,8 +89,8 @@ class _BarRow extends StatelessWidget {
         ? (displayTotal - paidAmount).clamp(0.0, displayTotal)
         : 0.0;
     final paidAmountLabel = formatAmount(paidAmount);
-    final String? upcomingAmountLabel = showFullPeriodTotals &&
-            upcomingAmount > 0
+    final String? upcomingAmountLabel =
+        showFullPeriodTotals && upcomingAmount > 0
         ? formatAmount(upcomingAmount)
         : null;
     final totalLabel = formatAmount(displayTotal);
@@ -119,8 +118,9 @@ class _BarRow extends StatelessWidget {
             final upcomingWidth = showFullPeriodTotals
                 ? (totalWidth - paidWidth).clamp(0.0, totalWidth)
                 : 0.0;
-            final upcomingColor =
-                CupertinoColors.systemGrey5.resolveFrom(context);
+            final upcomingColor = CupertinoColors.systemGrey5.resolveFrom(
+              context,
+            );
             return Align(
               alignment: Alignment.centerLeft,
               child: ClipRRect(
@@ -147,8 +147,9 @@ class _BarRow extends StatelessWidget {
                           color: upcomingColor,
                           label: upcomingAmountLabel,
                           alignment: Alignment.centerRight,
-                          textColor: CupertinoColors.secondaryLabel
-                              .resolveFrom(context),
+                          textColor: CupertinoColors.secondaryLabel.resolveFrom(
+                            context,
+                          ),
                         ),
                     ],
                   ),
@@ -180,10 +181,10 @@ class _BarSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = CupertinoTheme.of(context).textTheme.textStyle.copyWith(
-          color: textColor,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        );
+      color: textColor,
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    );
     return SizedBox(
       width: width,
       child: Container(
@@ -208,4 +209,19 @@ Color _segmentLabelColor(Color color) {
   return color.computeLuminance() > 0.5
       ? CupertinoColors.black
       : CupertinoColors.white;
+}
+
+// Keeps very small subscriptions visible even if another subscription dominates.
+const double _minBarBaselineShare = 0.1;
+
+@visibleForTesting
+double calculateAnalyticsBarWidthFactor({
+  required double displayTotal,
+  required double maxTotal,
+}) {
+  if (displayTotal <= 0 || maxTotal <= 0) return 0;
+  final baseline = maxTotal * _minBarBaselineShare;
+  final paddedTotal = displayTotal + baseline;
+  final paddedMaxTotal = maxTotal + baseline;
+  return (paddedTotal / paddedMaxTotal).clamp(0.0, 1.0);
 }

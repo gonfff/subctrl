@@ -3,18 +3,17 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/analytics_screen.dart';
 import 'package:subctrl/presentation/screens/subscriptions_screen.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
+import 'package:subctrl/presentation/widgets/keyboard_dismiss_on_tap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const SubctrlApp());
 }
 
@@ -169,6 +168,9 @@ class _SubctrlAppState extends State<SubctrlApp> {
       locale: _locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) {
+        return KeyboardDismissOnTap(child: child ?? const SizedBox.shrink());
+      },
       home: HomeTabs(
         dependencies: _dependencies,
         themePreference: _themePreference,
