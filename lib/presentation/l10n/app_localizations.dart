@@ -81,6 +81,11 @@ class AppLocalizations {
       'settingsAboutSupport': 'Support the project',
       'settingsAboutVersion': 'App version',
       'settingsCopyAction': 'Copy',
+      'settingsSupportLoading': 'Loading wallets...',
+      'settingsSupportError':
+          'Failed to load wallets. Check your connection and try again.',
+      'settingsSupportRetry': 'Retry',
+      'settingsSupportEmpty': 'Wallet list is empty right now.',
       'settingsCopySuccess': 'Copied to clipboard',
       'settingsVersionUnknown': 'Unknown',
       'settingsCurrenciesEnabledLabel': '{count} enabled',
@@ -228,6 +233,11 @@ class AppLocalizations {
       'settingsAboutSupport': 'Поддержать проект',
       'settingsAboutVersion': 'Версия приложения',
       'settingsCopyAction': 'Скопировать',
+      'settingsSupportLoading': 'Загружаем кошельки...',
+      'settingsSupportError':
+          'Не удалось загрузить кошельки. Проверьте соединение и попробуйте ещё раз.',
+      'settingsSupportRetry': 'Повторить',
+      'settingsSupportEmpty': 'Список кошельков пока пуст.',
       'settingsCopySuccess': 'Скопировано',
       'settingsVersionUnknown': 'Неизвестно',
       'settingsCurrenciesEnabledLabel': '{count} активны',
@@ -422,6 +432,10 @@ class AppLocalizations {
   String get settingsAboutSupport => _strings['settingsAboutSupport']!;
   String get settingsAboutVersion => _strings['settingsAboutVersion']!;
   String get settingsCopyAction => _strings['settingsCopyAction']!;
+  String get settingsSupportLoading => _strings['settingsSupportLoading']!;
+  String get settingsSupportError => _strings['settingsSupportError']!;
+  String get settingsSupportRetry => _strings['settingsSupportRetry']!;
+  String get settingsSupportEmpty => _strings['settingsSupportEmpty']!;
   String get settingsCopySuccess => _strings['settingsCopySuccess']!;
   String get settingsVersionUnknown => _strings['settingsVersionUnknown']!;
   String get settingsCurrenciesTitle => _strings['settingsCurrenciesTitle']!;

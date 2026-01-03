@@ -29,6 +29,7 @@ import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
+import 'package:subctrl/application/support/fetch_donation_wallets_use_case.dart';
 import 'package:subctrl/application/tags/create_tag_use_case.dart';
 import 'package:subctrl/application/tags/delete_tag_use_case.dart';
 import 'package:subctrl/application/tags/update_tag_use_case.dart';
@@ -48,6 +49,9 @@ import 'package:subctrl/infrastructure/repositories/drift_currency_repository.da
 import 'package:subctrl/infrastructure/repositories/drift_settings_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_subscription_repository.dart';
 import 'package:subctrl/infrastructure/repositories/drift_tag_repository.dart';
+import 'package:subctrl/infrastructure/support/donation_wallet_fallback_data.dart';
+import 'package:subctrl/infrastructure/support/remote_donation_wallets_provider.dart';
+import 'package:subctrl/infrastructure/support/resilient_donation_wallets_provider.dart';
 
 class AppDependencies {
   AppDependencies._({
@@ -86,8 +90,11 @@ class AppDependencies {
     required this.scheduleNotificationsUseCase,
     required this.requestNotificationPermissionUseCase,
     required this.openNotificationSettingsUseCase,
+    required this.fetchDonationWalletsUseCase,
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
-  }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
+    required RemoteDonationWalletsProvider remoteDonationWalletsProvider,
+  }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient,
+       _remoteDonationWalletsProvider = remoteDonationWalletsProvider;
 
   factory AppDependencies() {
     final database = AppDatabase();
@@ -109,6 +116,13 @@ class AppDependencies {
     final subscriptionRatesClient = SubscriptionCurrencyRatesClient(
       yahooFinanceCurrencyClient: yahooFinanceClient,
       currencyRepository: currencyRepository,
+    );
+    final remoteDonationWalletsProvider = RemoteDonationWalletsProvider(
+      endpoint: Uri.parse('https://gonfff.com/subctrl/assets/wallets.json'),
+    );
+    final donationWalletsProvider = ResilientDonationWalletsProvider(
+      primary: remoteDonationWalletsProvider,
+      fallbackWallets: donationWalletFallbackData,
     );
     final localNotificationsService = LocalNotificationsService();
     final notificationPermissionService = NotificationPermissionService();
@@ -177,19 +191,22 @@ class AppDependencies {
       getPendingNotificationsUseCase: GetPendingNotificationsUseCase(
         localNotificationsService,
       ),
-      cancelNotificationsUseCase:
-          CancelNotificationsUseCase(localNotificationsService),
+      cancelNotificationsUseCase: CancelNotificationsUseCase(
+        localNotificationsService,
+      ),
       scheduleNotificationsUseCase: ScheduleNotificationsUseCase(
         localNotificationsService,
       ),
       requestNotificationPermissionUseCase:
-          RequestNotificationPermissionUseCase(
-        notificationPermissionService,
-      ),
+          RequestNotificationPermissionUseCase(notificationPermissionService),
       openNotificationSettingsUseCase: OpenNotificationSettingsUseCase(
         notificationPermissionService,
       ),
+      fetchDonationWalletsUseCase: FetchDonationWalletsUseCase(
+        donationWalletsProvider,
+      ),
       yahooFinanceCurrencyClient: yahooFinanceClient,
+      remoteDonationWalletsProvider: remoteDonationWalletsProvider,
     );
   }
 
@@ -235,10 +252,13 @@ class AppDependencies {
   final RequestNotificationPermissionUseCase
   requestNotificationPermissionUseCase;
   final OpenNotificationSettingsUseCase openNotificationSettingsUseCase;
+  final FetchDonationWalletsUseCase fetchDonationWalletsUseCase;
 
   final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
+  final RemoteDonationWalletsProvider _remoteDonationWalletsProvider;
 
   void dispose() {
     _yahooFinanceCurrencyClient.close();
+    _remoteDonationWalletsProvider.close();
   }
 }

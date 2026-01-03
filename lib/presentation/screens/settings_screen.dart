@@ -306,7 +306,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openSupport() async {
     await Navigator.of(context).push(
       CupertinoPageRoute<void>(
-        builder: (context) => SupportScreen(onClose: widget.onRequestClose),
+        builder: (context) => SupportScreen(
+          onClose: widget.onRequestClose,
+          fetchDonationWalletsUseCase:
+              widget.dependencies.fetchDonationWalletsUseCase,
+        ),
       ),
     );
   }

@@ -1,40 +1,32 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:subctrl/application/support/fetch_donation_wallets_use_case.dart';
+import 'package:subctrl/domain/entities/donation_wallet.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 
 class SupportScreen extends StatefulWidget {
-  const SupportScreen({super.key, required this.onClose});
+  const SupportScreen({
+    super.key,
+    required this.onClose,
+    required this.fetchDonationWalletsUseCase,
+  });
 
   final VoidCallback onClose;
+  final FetchDonationWalletsUseCase fetchDonationWalletsUseCase;
 
   @override
   State<SupportScreen> createState() => _SupportScreenState();
 }
 
 class _SupportScreenState extends State<SupportScreen> {
-  static const List<_DonationEntry> _donations = [
-    _DonationEntry(
-      label: 'BTC',
-      value: 'bc1qjtjzlxel5mn3pvtps2u2wnfease44783r5nmhl',
-    ),
-    _DonationEntry(
-      label: 'USDT (TRON)',
-      value: 'TRsN3XgSXdeQz3yoGusW3f94KHsBNE62yR',
-    ),
-    _DonationEntry(
-      label: 'ETH',
-      value: '0xDf3275d97DF7Ba76d12ec0F82378C1e0628A5F6F',
-    ),
-    _DonationEntry(
-      label: 'TON',
-      value: 'UQCYgQSiRx5pk5E0ALzhz6WsFjuK3SyPiAe7vYG5uhidsyqj',
-    ),
-    _DonationEntry(
-      label: 'SOL',
-      value: '2KRt8ASpGasvMSaWZfgFfrFgb1LaUHzudHfGiEcF9vVK',
-    ),
-  ];
+  late Future<List<DonationWallet>> _walletsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _walletsFuture = widget.fetchDonationWalletsUseCase();
+  }
 
   Future<void> _copyValue(String value) async {
     await Clipboard.setData(ClipboardData(text: value));
@@ -46,6 +38,12 @@ class _SupportScreenState extends State<SupportScreen> {
       if (!didPop) {
         widget.onClose();
       }
+    });
+  }
+
+  void _reloadWallets() {
+    setState(() {
+      _walletsFuture = widget.fetchDonationWalletsUseCase();
     });
   }
 
@@ -62,19 +60,52 @@ class _SupportScreenState extends State<SupportScreen> {
         middle: Text(localizations.settingsAboutSupport),
       ),
       child: SafeArea(
-        child: ListView(
-          children: [
-            CupertinoFormSection.insetGrouped(
-              header: Text(localizations.settingsAboutSupport),
-              children: [
-                _DonationTile(
-                  entries: _donations,
-                  copyLabel: localizations.settingsCopyAction,
-                  onCopy: _copyValue,
-                ),
-              ],
-            ),
-          ],
+        child: FutureBuilder<List<DonationWallet>>(
+          future: _walletsFuture,
+          builder: (context, snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+              case ConnectionState.active:
+                return _SupportMessageView(
+                  message: localizations.settingsSupportLoading,
+                  child: const CupertinoActivityIndicator(radius: 12),
+                );
+              case ConnectionState.none:
+                return _SupportErrorView(
+                  message: localizations.settingsSupportError,
+                  retryLabel: localizations.settingsSupportRetry,
+                  onRetry: _reloadWallets,
+                );
+              case ConnectionState.done:
+                if (snapshot.hasError) {
+                  return _SupportErrorView(
+                    message: localizations.settingsSupportError,
+                    retryLabel: localizations.settingsSupportRetry,
+                    onRetry: _reloadWallets,
+                  );
+                }
+                final wallets = snapshot.data ?? const [];
+                if (wallets.isEmpty) {
+                  return _SupportMessageView(
+                    message: localizations.settingsSupportEmpty,
+                  );
+                }
+                return ListView(
+                  children: [
+                    CupertinoFormSection.insetGrouped(
+                      header: Text(localizations.settingsAboutSupport),
+                      children: [
+                        _DonationTile(
+                          entries: wallets,
+                          copyLabel: localizations.settingsCopyAction,
+                          onCopy: _copyValue,
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+            }
+          },
         ),
       ),
     );
@@ -88,7 +119,7 @@ class _DonationTile extends StatelessWidget {
     required this.onCopy,
   });
 
-  final List<_DonationEntry> entries;
+  final List<DonationWallet> entries;
   final String copyLabel;
   final ValueChanged<String> onCopy;
 
@@ -122,7 +153,7 @@ class _DonationTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          entries[i].value,
+                          entries[i].address,
                           style: textStyle.copyWith(
                             fontSize: 13,
                             color: secondary,
@@ -136,7 +167,7 @@ class _DonationTile extends StatelessWidget {
                       horizontal: 12,
                       vertical: 6,
                     ),
-                    onPressed: () => onCopy(entries[i].value),
+                    onPressed: () => onCopy(entries[i].address),
                     child: Text(copyLabel),
                   ),
                 ],
@@ -148,9 +179,54 @@ class _DonationTile extends StatelessWidget {
   }
 }
 
-class _DonationEntry {
-  const _DonationEntry({required this.label, required this.value});
+class _SupportMessageView extends StatelessWidget {
+  const _SupportMessageView({required this.message, this.child});
 
-  final String label;
-  final String value;
+  final String message;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = CupertinoTheme.of(context).textTheme.textStyle;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (child != null) ...[child!, const SizedBox(height: 12)],
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: textStyle.copyWith(fontSize: 15),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SupportErrorView extends StatelessWidget {
+  const _SupportErrorView({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SupportMessageView(
+      message: message,
+      child: CupertinoButton(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        onPressed: onRetry,
+        child: Text(retryLabel),
+      ),
+    );
+  }
 }
