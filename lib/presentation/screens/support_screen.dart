@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 
@@ -21,7 +20,7 @@ class _SupportScreenState extends State<SupportScreen> {
     ),
     _DonationEntry(
       label: 'USDT (TRON)',
-      value: '0xDf3275d97DF7Ba76d12ec0F82378C1e0628A5F6F',
+      value: 'TRsN3XgSXdeQz3yoGusW3f94KHsBNE62yR',
     ),
     _DonationEntry(
       label: 'ETH',
@@ -30,6 +29,10 @@ class _SupportScreenState extends State<SupportScreen> {
     _DonationEntry(
       label: 'TON',
       value: 'UQCYgQSiRx5pk5E0ALzhz6WsFjuK3SyPiAe7vYG5uhidsyqj',
+    ),
+    _DonationEntry(
+      label: 'SOL',
+      value: '2KRt8ASpGasvMSaWZfgFfrFgb1LaUHzudHfGiEcF9vVK',
     ),
   ];
 
