@@ -136,7 +136,7 @@ class _SettingsTile extends StatelessWidget {
             value,
             style: textStyle.copyWith(
               color: isLink ? linkColor : secondary,
-              fontSize: 13,
+              fontSize: 15,
               decoration: isLink ? TextDecoration.underline : null,
             ),
             textAlign: TextAlign.right,
@@ -189,7 +189,7 @@ class _LinkValueTile extends StatelessWidget {
             child: Text(
               linkLabel ?? value,
               style: textStyle.copyWith(
-                fontSize: 13,
+                fontSize: 15,
                 color: linkColor,
                 decoration: TextDecoration.underline,
               ),
