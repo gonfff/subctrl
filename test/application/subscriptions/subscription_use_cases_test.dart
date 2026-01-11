@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/refresh_overdue_next_payments_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
@@ -30,6 +31,7 @@ void main() {
   late AddSubscriptionUseCase addUseCase;
   late UpdateSubscriptionUseCase updateUseCase;
   late DeleteSubscriptionUseCase deleteUseCase;
+  late RefreshOverdueNextPaymentsUseCase refreshOverdueNextPaymentsUseCase;
 
   setUp(() {
     repository = _MockSubscriptionRepository();
@@ -37,6 +39,10 @@ void main() {
     addUseCase = AddSubscriptionUseCase(repository);
     updateUseCase = UpdateSubscriptionUseCase(repository);
     deleteUseCase = DeleteSubscriptionUseCase(repository);
+    refreshOverdueNextPaymentsUseCase = RefreshOverdueNextPaymentsUseCase(
+      repository,
+      nowProvider: () => DateTime(2024, 2, 15),
+    );
   });
 
   test('watch use case delegates to repository stream', () async {
@@ -91,5 +97,42 @@ void main() {
     when(() => repository.deleteSubscription(any())).thenAnswer((_) async {});
     await deleteUseCase(42);
     verify(() => repository.deleteSubscription(42)).called(1);
+  });
+
+  test('refresh overdue next payments updates stored subscriptions', () async {
+    when(() => repository.updateSubscription(any())).thenAnswer((_) async {});
+    final stale = Subscription(
+      id: 1,
+      name: 'Stale',
+      amount: 5,
+      currency: 'USD',
+      cycle: BillingCycle.monthly,
+      purchaseDate: DateTime(2024, 1, 1),
+      nextPaymentDate: DateTime(2024, 2, 1),
+    );
+    final fresh = Subscription(
+      id: 2,
+      name: 'Fresh',
+      amount: 5,
+      currency: 'USD',
+      cycle: BillingCycle.monthly,
+      purchaseDate: DateTime(2024, 2, 1),
+      nextPaymentDate: DateTime(2024, 3, 1),
+    );
+
+    await refreshOverdueNextPaymentsUseCase([stale, fresh]);
+
+    verify(
+      () => repository.updateSubscription(
+        any(
+          that: predicate<Subscription>(
+            (updated) =>
+                updated.id == 1 &&
+                updated.nextPaymentDate == DateTime(2024, 3, 1),
+          ),
+        ),
+      ),
+    ).called(1);
+    verifyNever(() => repository.updateSubscription(fresh));
   });
 }

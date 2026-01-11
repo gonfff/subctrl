@@ -63,6 +63,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       addSubscriptionUseCase: widget.dependencies.addSubscriptionUseCase,
       updateSubscriptionUseCase: widget.dependencies.updateSubscriptionUseCase,
       deleteSubscriptionUseCase: widget.dependencies.deleteSubscriptionUseCase,
+      refreshOverdueNextPaymentsUseCase:
+          widget.dependencies.refreshOverdueNextPaymentsUseCase,
       watchCurrenciesUseCase: widget.dependencies.watchCurrenciesUseCase,
       getCurrenciesUseCase: widget.dependencies.getCurrenciesUseCase,
       watchCurrencyRatesUseCase: widget.dependencies.watchCurrencyRatesUseCase,

@@ -14,6 +14,7 @@ import 'package:subctrl/application/notifications/get_pending_notifications_use_
 import 'package:subctrl/application/notifications/schedule_notifications_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/refresh_overdue_next_payments_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
@@ -35,6 +36,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
     required AddSubscriptionUseCase addSubscriptionUseCase,
     required UpdateSubscriptionUseCase updateSubscriptionUseCase,
     required DeleteSubscriptionUseCase deleteSubscriptionUseCase,
+    required RefreshOverdueNextPaymentsUseCase refreshOverdueNextPaymentsUseCase,
     required WatchCurrenciesUseCase watchCurrenciesUseCase,
     required GetCurrenciesUseCase getCurrenciesUseCase,
     required WatchCurrencyRatesUseCase watchCurrencyRatesUseCase,
@@ -54,6 +56,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
        _addSubscriptionUseCase = addSubscriptionUseCase,
        _updateSubscriptionUseCase = updateSubscriptionUseCase,
        _deleteSubscriptionUseCase = deleteSubscriptionUseCase,
+       _refreshOverdueNextPaymentsUseCase = refreshOverdueNextPaymentsUseCase,
        _watchCurrenciesUseCase = watchCurrenciesUseCase,
        _getCurrenciesUseCase = getCurrenciesUseCase,
        _watchCurrencyRatesUseCase = watchCurrencyRatesUseCase,
@@ -79,6 +82,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
   final AddSubscriptionUseCase _addSubscriptionUseCase;
   final UpdateSubscriptionUseCase _updateSubscriptionUseCase;
   final DeleteSubscriptionUseCase _deleteSubscriptionUseCase;
+  final RefreshOverdueNextPaymentsUseCase _refreshOverdueNextPaymentsUseCase;
   final WatchCurrenciesUseCase _watchCurrenciesUseCase;
   final GetCurrenciesUseCase _getCurrenciesUseCase;
   final WatchCurrencyRatesUseCase _watchCurrencyRatesUseCase;
@@ -104,6 +108,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
   bool _isFetchingRates = false;
   bool _autoDownloadEnabled = true;
   bool _isSyncingNotifications = false;
+  bool _isUpdatingNextPayments = false;
 
   List<Subscription> _subscriptions = const [];
   List<Tag> _tags = const [];
@@ -233,6 +238,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
       _subscriptions = subscriptions;
       _isLoadingSubscriptions = false;
       notifyListeners();
+      unawaited(_refreshOverdueNextPayments(subscriptions));
       if (_autoDownloadEnabled) {
         unawaited(_refreshCurrencyRatesForSubscriptions());
       }
@@ -328,6 +334,26 @@ class SubscriptionsViewModel extends ChangeNotifier {
       );
     } finally {
       _isFetchingRates = false;
+    }
+  }
+
+  Future<void> _refreshOverdueNextPayments(
+    List<Subscription> subscriptions,
+  ) async {
+    if (_isUpdatingNextPayments) {
+      return;
+    }
+    _isUpdatingNextPayments = true;
+    try {
+      await _refreshOverdueNextPaymentsUseCase(subscriptions);
+    } catch (error, stackTrace) {
+      _log(
+        'Failed to refresh overdue next payments',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      _isUpdatingNextPayments = false;
     }
   }
 
