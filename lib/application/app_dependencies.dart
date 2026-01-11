@@ -27,6 +27,7 @@ import 'package:subctrl/application/settings/set_notifications_enabled_use_case.
 import 'package:subctrl/application/settings/set_theme_preference_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/refresh_overdue_next_payments_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
 import 'package:subctrl/application/tags/create_tag_use_case.dart';
@@ -55,6 +56,7 @@ class AppDependencies {
     required this.addSubscriptionUseCase,
     required this.updateSubscriptionUseCase,
     required this.deleteSubscriptionUseCase,
+    required this.refreshOverdueNextPaymentsUseCase,
     required this.watchCurrenciesUseCase,
     required this.getCurrenciesUseCase,
     required this.setCurrencyEnabledUseCase,
@@ -122,6 +124,9 @@ class AppDependencies {
         subscriptionRepository,
       ),
       deleteSubscriptionUseCase: DeleteSubscriptionUseCase(
+        subscriptionRepository,
+      ),
+      refreshOverdueNextPaymentsUseCase: RefreshOverdueNextPaymentsUseCase(
         subscriptionRepository,
       ),
       watchCurrenciesUseCase: WatchCurrenciesUseCase(currencyRepository),
@@ -197,6 +202,7 @@ class AppDependencies {
   final AddSubscriptionUseCase addSubscriptionUseCase;
   final UpdateSubscriptionUseCase updateSubscriptionUseCase;
   final DeleteSubscriptionUseCase deleteSubscriptionUseCase;
+  final RefreshOverdueNextPaymentsUseCase refreshOverdueNextPaymentsUseCase;
 
   final WatchCurrenciesUseCase watchCurrenciesUseCase;
   final GetCurrenciesUseCase getCurrenciesUseCase;

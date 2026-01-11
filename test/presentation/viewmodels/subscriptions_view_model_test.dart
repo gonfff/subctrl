@@ -14,6 +14,7 @@ import 'package:subctrl/application/notifications/get_pending_notifications_use_
 import 'package:subctrl/application/notifications/schedule_notifications_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
+import 'package:subctrl/application/subscriptions/refresh_overdue_next_payments_use_case.dart';
 import 'package:subctrl/application/subscriptions/update_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/watch_subscriptions_use_case.dart';
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
@@ -37,6 +38,9 @@ class _MockUpdateSubscriptionUseCase extends Mock
 
 class _MockDeleteSubscriptionUseCase extends Mock
     implements DeleteSubscriptionUseCase {}
+
+class _MockRefreshOverdueNextPaymentsUseCase extends Mock
+    implements RefreshOverdueNextPaymentsUseCase {}
 
 class _MockWatchCurrenciesUseCase extends Mock
     implements WatchCurrenciesUseCase {}
@@ -85,6 +89,7 @@ void main() {
   late _MockAddSubscriptionUseCase addSubscriptionUseCase;
   late _MockUpdateSubscriptionUseCase updateSubscriptionUseCase;
   late _MockDeleteSubscriptionUseCase deleteSubscriptionUseCase;
+  late _MockRefreshOverdueNextPaymentsUseCase refreshOverdueNextPaymentsUseCase;
   late _MockWatchCurrenciesUseCase watchCurrenciesUseCase;
   late _MockGetCurrenciesUseCase getCurrenciesUseCase;
   late _MockWatchCurrencyRatesUseCase watchCurrencyRatesUseCase;
@@ -107,6 +112,8 @@ void main() {
     addSubscriptionUseCase = _MockAddSubscriptionUseCase();
     updateSubscriptionUseCase = _MockUpdateSubscriptionUseCase();
     deleteSubscriptionUseCase = _MockDeleteSubscriptionUseCase();
+    refreshOverdueNextPaymentsUseCase =
+        _MockRefreshOverdueNextPaymentsUseCase();
     watchCurrenciesUseCase = _MockWatchCurrenciesUseCase();
     getCurrenciesUseCase = _MockGetCurrenciesUseCase();
     watchCurrencyRatesUseCase = _MockWatchCurrencyRatesUseCase();
@@ -161,12 +168,16 @@ void main() {
     when(() => addSubscriptionUseCase(any())).thenAnswer((_) async {});
     when(() => updateSubscriptionUseCase(any())).thenAnswer((_) async {});
     when(() => deleteSubscriptionUseCase(any())).thenAnswer((_) async {});
+    when(
+      () => refreshOverdueNextPaymentsUseCase(any()),
+    ).thenAnswer((_) async {});
 
     viewModel = SubscriptionsViewModel(
       watchSubscriptionsUseCase: watchSubscriptionsUseCase,
       addSubscriptionUseCase: addSubscriptionUseCase,
       updateSubscriptionUseCase: updateSubscriptionUseCase,
       deleteSubscriptionUseCase: deleteSubscriptionUseCase,
+      refreshOverdueNextPaymentsUseCase: refreshOverdueNextPaymentsUseCase,
       watchCurrenciesUseCase: watchCurrenciesUseCase,
       getCurrenciesUseCase: getCurrenciesUseCase,
       watchCurrencyRatesUseCase: watchCurrencyRatesUseCase,
@@ -247,6 +258,28 @@ void main() {
     expect(viewModel.isLoadingCurrencies, isFalse);
   });
 
+  test('triggers overdue next payment refresh on updates', () async {
+    final subscription = Subscription(
+      id: 1,
+      name: 'Overdue',
+      amount: 5,
+      currency: 'usd',
+      cycle: BillingCycle.monthly,
+      purchaseDate: DateTime(2024, 1, 1),
+    );
+    subscriptionsController.add([subscription]);
+    tagsController.add(const []);
+    currenciesController.add(const []);
+    ratesController.add(const []);
+    await Future<void>.delayed(Duration.zero);
+
+    verify(
+      () => refreshOverdueNextPaymentsUseCase(
+        any(that: predicate<List<Subscription>>((subs) => subs.length == 1)),
+      ),
+    ).called(1);
+  });
+
   test('updateBaseCurrencyCode re-listens to currency rates stream', () async {
     viewModel.updateBaseCurrencyCode('eur');
     await Future<void>.delayed(Duration.zero);
@@ -322,6 +355,7 @@ void main() {
       addSubscriptionUseCase: addSubscriptionUseCase,
       updateSubscriptionUseCase: updateSubscriptionUseCase,
       deleteSubscriptionUseCase: deleteSubscriptionUseCase,
+      refreshOverdueNextPaymentsUseCase: refreshOverdueNextPaymentsUseCase,
       watchCurrenciesUseCase: watchCurrenciesUseCase,
       getCurrenciesUseCase: getCurrenciesUseCase,
       watchCurrencyRatesUseCase: watchCurrencyRatesUseCase,
