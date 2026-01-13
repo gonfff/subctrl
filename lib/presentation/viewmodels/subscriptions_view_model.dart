@@ -217,6 +217,13 @@ class SubscriptionsViewModel extends ChangeNotifier {
     return _refreshCurrencyRatesForSubscriptions();
   }
 
+  Future<void> refreshOverdueNextPayments() async {
+    if (_isLoadingSubscriptions || _subscriptions.isEmpty) {
+      return;
+    }
+    await _refreshOverdueNextPayments(_subscriptions);
+  }
+
   Future<void> ensureCurrenciesLoaded() async {
     if (!_isLoadingCurrencies && _currencies.isNotEmpty) {
       return;
