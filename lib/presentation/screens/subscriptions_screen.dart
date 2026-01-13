@@ -1,11 +1,12 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 import 'package:subctrl/presentation/widgets/add_subscription_sheet.dart';
@@ -49,7 +50,8 @@ class SubscriptionsScreen extends StatefulWidget {
   State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
 }
 
-class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
+class _SubscriptionsScreenState extends State<SubscriptionsScreen>
+    with WidgetsBindingObserver {
   late final SubscriptionsViewModel _viewModel;
   late final ScrollController _scrollController;
   final TextEditingController _searchController = TextEditingController();
@@ -57,6 +59,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _scrollController = ScrollController();
     _viewModel = SubscriptionsViewModel(
       watchSubscriptionsUseCase: widget.dependencies.watchSubscriptionsUseCase,
@@ -95,7 +98,15 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     _scrollController.dispose();
     _searchController.dispose();
     _viewModel.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_viewModel.refreshOverdueNextPayments());
+    }
   }
 
   @override

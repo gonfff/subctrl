@@ -280,6 +280,57 @@ void main() {
     ).called(1);
   });
 
+  test('refreshOverdueNextPayments uses current subscriptions', () async {
+    final subscription = Subscription(
+      id: 2,
+      name: 'HBO',
+      amount: 12,
+      currency: 'usd',
+      cycle: BillingCycle.monthly,
+      purchaseDate: DateTime(2024, 1, 1),
+    );
+    subscriptionsController.add([subscription]);
+    tagsController.add(const []);
+    currenciesController.add(const []);
+    ratesController.add(const []);
+    await Future<void>.delayed(Duration.zero);
+
+    clearInteractions(refreshOverdueNextPaymentsUseCase);
+    await viewModel.refreshOverdueNextPayments();
+
+    verify(
+      () => refreshOverdueNextPaymentsUseCase(
+        any(that: predicate<List<Subscription>>((subs) => subs.length == 1)),
+      ),
+    ).called(1);
+  });
+
+  test(
+    'refreshOverdueNextPayments does nothing when subscriptions are empty',
+    () async {
+      subscriptionsController.add(const []);
+      tagsController.add(const []);
+      currenciesController.add(const []);
+      ratesController.add(const []);
+      await Future<void>.delayed(Duration.zero);
+
+      clearInteractions(refreshOverdueNextPaymentsUseCase);
+      await viewModel.refreshOverdueNextPayments();
+
+      verifyNever(() => refreshOverdueNextPaymentsUseCase(any()));
+    },
+  );
+
+  test(
+    'refreshOverdueNextPayments does nothing when subscriptions are loading',
+    () async {
+      clearInteractions(refreshOverdueNextPaymentsUseCase);
+      await viewModel.refreshOverdueNextPayments();
+
+      verifyNever(() => refreshOverdueNextPaymentsUseCase(any()));
+    },
+  );
+
   test('updateBaseCurrencyCode re-listens to currency rates stream', () async {
     viewModel.updateBaseCurrencyCode('eur');
     await Future<void>.delayed(Duration.zero);
