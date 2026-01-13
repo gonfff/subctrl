@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 
 import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/screens/settings_screen.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 
 class SettingsSheet extends StatelessWidget {
@@ -23,6 +23,9 @@ class SettingsSheet extends StatelessWidget {
     required this.onNotificationsPreferenceChanged,
     required this.notificationReminderOption,
     required this.onNotificationReminderChanged,
+    required this.testingDateOverride,
+    required this.onTestingDateOverrideChanged,
+    required this.nowProvider,
   });
 
   final AppDependencies dependencies;
@@ -38,6 +41,9 @@ class SettingsSheet extends StatelessWidget {
   final ValueChanged<bool> onNotificationsPreferenceChanged;
   final NotificationReminderOption notificationReminderOption;
   final NotificationReminderChangedCallback onNotificationReminderChanged;
+  final DateTime? testingDateOverride;
+  final TestingDateOverrideChangedCallback onTestingDateOverrideChanged;
+  final DateTime Function() nowProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +105,10 @@ class SettingsSheet extends StatelessWidget {
                                     notificationReminderOption,
                                 onNotificationReminderChanged:
                                     onNotificationReminderChanged,
+                                testingDateOverride: testingDateOverride,
+                                onTestingDateOverrideChanged:
+                                    onTestingDateOverrideChanged,
+                                nowProvider: nowProvider,
                                 onRequestClose: () =>
                                     Navigator.of(context).maybePop(),
                               ),

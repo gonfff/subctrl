@@ -15,12 +15,14 @@ class AddSubscriptionSheet extends StatefulWidget {
     this.defaultCurrencyCode,
     required this.tags,
     this.initialSubscription,
+    required this.nowProvider,
   });
 
   final List<Currency> currencies;
   final String? defaultCurrencyCode;
   final List<Tag> tags;
   final Subscription? initialSubscription;
+  final DateTime Function() nowProvider;
 
   @override
   State<AddSubscriptionSheet> createState() => _AddSubscriptionSheetState();
@@ -64,7 +66,7 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
   void initState() {
     super.initState();
     final initial = widget.initialSubscription;
-    _purchaseDate = initial?.purchaseDate ?? DateTime.now();
+    _purchaseDate = initial?.purchaseDate ?? widget.nowProvider();
     _cycle = initial?.cycle ?? BillingCycle.monthly;
     _currencyCode =
         widget.defaultCurrencyCode?.toUpperCase() ??
@@ -112,7 +114,8 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
 
   Currency? get _selectedCurrency => _currencyMap[_currencyCode];
 
-  DateTime? get _nextPaymentDate => _cycle.nextPaymentDate(_purchaseDate);
+  DateTime? get _nextPaymentDate =>
+      _cycle.nextPaymentDate(_purchaseDate, widget.nowProvider());
 
   double _parseAmount(String text) {
     final normalized = text.replaceAll(',', '.');
@@ -189,8 +192,8 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
                   initialDateTime: tempDate,
-                  minimumDate: DateTime(DateTime.now().year - 10),
-                  maximumDate: DateTime(DateTime.now().year + 5),
+                  minimumDate: DateTime(widget.nowProvider().year - 10),
+                  maximumDate: DateTime(widget.nowProvider().year + 5),
                   onDateTimeChanged: (value) => tempDate = value,
                 ),
               ),
@@ -233,7 +236,7 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
         return _purchaseDate;
       }
       if (initial.isActive != _isActive) {
-        return DateTime.now();
+        return widget.nowProvider();
       }
       return initial.statusChangedAt;
     }();

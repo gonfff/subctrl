@@ -1,3 +1,4 @@
+import 'package:subctrl/application/app_clock.dart';
 import 'package:subctrl/application/currencies/add_custom_currency_use_case.dart';
 import 'package:subctrl/application/currencies/delete_custom_currency_use_case.dart';
 import 'package:subctrl/application/currencies/get_currencies_use_case.dart';
@@ -19,11 +20,13 @@ import 'package:subctrl/application/settings/get_locale_code_use_case.dart';
 import 'package:subctrl/application/settings/get_notification_reminder_offset_use_case.dart';
 import 'package:subctrl/application/settings/get_notifications_enabled_use_case.dart';
 import 'package:subctrl/application/settings/get_theme_preference_use_case.dart';
+import 'package:subctrl/application/settings/get_testing_date_override_use_case.dart';
 import 'package:subctrl/application/settings/set_base_currency_code_use_case.dart';
 import 'package:subctrl/application/settings/set_currency_rates_auto_download_use_case.dart';
 import 'package:subctrl/application/settings/set_locale_code_use_case.dart';
 import 'package:subctrl/application/settings/set_notification_reminder_offset_use_case.dart';
 import 'package:subctrl/application/settings/set_notifications_enabled_use_case.dart';
+import 'package:subctrl/application/settings/set_testing_date_override_use_case.dart';
 import 'package:subctrl/application/settings/set_theme_preference_use_case.dart';
 import 'package:subctrl/application/subscriptions/add_subscription_use_case.dart';
 import 'package:subctrl/application/subscriptions/delete_subscription_use_case.dart';
@@ -83,11 +86,14 @@ class AppDependencies {
     required this.setNotificationsEnabledUseCase,
     required this.getNotificationReminderOffsetUseCase,
     required this.setNotificationReminderOffsetUseCase,
+    required this.getTestingDateOverrideUseCase,
+    required this.setTestingDateOverrideUseCase,
     required this.getPendingNotificationsUseCase,
     required this.cancelNotificationsUseCase,
     required this.scheduleNotificationsUseCase,
     required this.requestNotificationPermissionUseCase,
     required this.openNotificationSettingsUseCase,
+    required this.appClock,
     required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
   }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
 
@@ -112,6 +118,7 @@ class AppDependencies {
       yahooFinanceCurrencyClient: yahooFinanceClient,
       currencyRepository: currencyRepository,
     );
+    final appClock = AppClock();
     final localNotificationsService = LocalNotificationsService();
     final notificationPermissionService = NotificationPermissionService();
 
@@ -128,6 +135,7 @@ class AppDependencies {
       ),
       refreshOverdueNextPaymentsUseCase: RefreshOverdueNextPaymentsUseCase(
         subscriptionRepository,
+        nowProvider: appClock.now,
       ),
       watchCurrenciesUseCase: WatchCurrenciesUseCase(currencyRepository),
       getCurrenciesUseCase: GetCurrenciesUseCase(currencyRepository),
@@ -179,6 +187,12 @@ class AppDependencies {
           GetNotificationReminderOffsetUseCase(settingsRepository),
       setNotificationReminderOffsetUseCase:
           SetNotificationReminderOffsetUseCase(settingsRepository),
+      getTestingDateOverrideUseCase: GetTestingDateOverrideUseCase(
+        settingsRepository,
+      ),
+      setTestingDateOverrideUseCase: SetTestingDateOverrideUseCase(
+        settingsRepository,
+      ),
       getPendingNotificationsUseCase: GetPendingNotificationsUseCase(
         localNotificationsService,
       ),
@@ -194,6 +208,7 @@ class AppDependencies {
       openNotificationSettingsUseCase: OpenNotificationSettingsUseCase(
         notificationPermissionService,
       ),
+      appClock: appClock,
       yahooFinanceCurrencyClient: yahooFinanceClient,
     );
   }
@@ -235,12 +250,15 @@ class AppDependencies {
   getNotificationReminderOffsetUseCase;
   final SetNotificationReminderOffsetUseCase
   setNotificationReminderOffsetUseCase;
+  final GetTestingDateOverrideUseCase getTestingDateOverrideUseCase;
+  final SetTestingDateOverrideUseCase setTestingDateOverrideUseCase;
   final GetPendingNotificationsUseCase getPendingNotificationsUseCase;
   final CancelNotificationsUseCase cancelNotificationsUseCase;
   final ScheduleNotificationsUseCase scheduleNotificationsUseCase;
   final RequestNotificationPermissionUseCase
   requestNotificationPermissionUseCase;
   final OpenNotificationSettingsUseCase openNotificationSettingsUseCase;
+  final AppClock appClock;
 
   final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
 

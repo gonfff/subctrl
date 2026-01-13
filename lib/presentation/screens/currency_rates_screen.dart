@@ -17,10 +17,12 @@ class CurrencyRatesScreen extends StatefulWidget {
     super.key,
     required this.dependencies,
     required this.baseCurrencyCode,
+    required this.nowProvider,
   });
 
   final AppDependencies dependencies;
   final String baseCurrencyCode;
+  final DateTime Function() nowProvider;
 
   @override
   State<CurrencyRatesScreen> createState() => _CurrencyRatesScreenState();
@@ -195,6 +197,7 @@ class _CurrencyRatesScreenState extends State<CurrencyRatesScreen> {
         quotes: quotes,
         baseCurrencyCode: widget.baseCurrencyCode,
         localizations: localizations,
+        nowProvider: widget.nowProvider,
       ),
     );
   }
@@ -276,11 +279,13 @@ class _ManualRateSheet extends StatefulWidget {
     required this.quotes,
     required this.baseCurrencyCode,
     required this.localizations,
+    required this.nowProvider,
   });
 
   final List<Currency> quotes;
   final String baseCurrencyCode;
   final AppLocalizations localizations;
+  final DateTime Function() nowProvider;
 
   @override
   State<_ManualRateSheet> createState() => _ManualRateSheetState();
@@ -288,7 +293,7 @@ class _ManualRateSheet extends StatefulWidget {
 
 class _ManualRateSheetState extends State<_ManualRateSheet> {
   late Currency _selectedCurrency = widget.quotes.first;
-  late DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   final TextEditingController _rateController = TextEditingController();
   late final FixedExtentScrollController _pickerController =
       FixedExtentScrollController(initialItem: 0);
@@ -299,6 +304,12 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
   }
 
   bool get _canSubmit => _parsedRate != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.nowProvider();
+  }
 
   @override
   void dispose() {
@@ -411,7 +422,7 @@ class _ManualRateSheetState extends State<_ManualRateSheet> {
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
                           initialDateTime: _selectedDate,
-                          maximumDate: DateTime.now().add(
+                          maximumDate: widget.nowProvider().add(
                             const Duration(days: 3650),
                           ),
                           onDateTimeChanged: (value) {

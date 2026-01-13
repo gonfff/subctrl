@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:subctrl/application/app_clock.dart';
 import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
@@ -33,6 +34,7 @@ class _SubctrlAppState extends State<SubctrlApp> {
   bool _areNotificationsEnabled = false;
   NotificationReminderOption _notificationReminderOption =
       NotificationReminderOption.twoDaysBefore;
+  DateTime? _testingDateOverride;
   late final AppDependencies _dependencies;
 
   @override
@@ -66,6 +68,9 @@ class _SubctrlAppState extends State<SubctrlApp> {
         .getNotificationsEnabledUseCase();
     final storedReminder = await _dependencies
         .getNotificationReminderOffsetUseCase();
+    final storedTestingDate = kEnableTestingDateOverride
+        ? await _dependencies.getTestingDateOverrideUseCase()
+        : null;
     final reminderOption = NotificationReminderOption.fromStorage(
       storedReminder,
     );
@@ -92,7 +97,13 @@ class _SubctrlAppState extends State<SubctrlApp> {
       _isCurrencyRatesAutoDownloadEnabled = shouldDownloadRates;
       _areNotificationsEnabled = shouldEnableNotifications;
       _notificationReminderOption = reminderOption;
+      _testingDateOverride = storedTestingDate;
     });
+    if (kEnableTestingDateOverride) {
+      _dependencies.appClock.setOverrideDate(storedTestingDate);
+    } else {
+      _dependencies.appClock.setOverrideDate(null);
+    }
 
     if (shouldPersistBaseCurrency) {
       await _dependencies.setBaseCurrencyCodeUseCase(storedBaseCurrency);
@@ -145,6 +156,14 @@ class _SubctrlAppState extends State<SubctrlApp> {
     );
   }
 
+  Future<void> _handleTestingDateOverrideChanged(DateTime? value) async {
+    setState(() {
+      _testingDateOverride = value;
+    });
+    _dependencies.appClock.setOverrideDate(value);
+    await _dependencies.setTestingDateOverrideUseCase(value);
+  }
+
   @override
   void dispose() {
     _dependencies.dispose();
@@ -186,6 +205,9 @@ class _SubctrlAppState extends State<SubctrlApp> {
         onNotificationsPreferenceChanged: _handleNotificationsPreferenceChanged,
         notificationReminderOption: _notificationReminderOption,
         onNotificationReminderChanged: _handleNotificationReminderChanged,
+        testingDateOverride: _testingDateOverride,
+        onTestingDateOverrideChanged: _handleTestingDateOverrideChanged,
+        nowProvider: _dependencies.appClock.now,
       ),
     );
   }
@@ -207,6 +229,9 @@ class HomeTabs extends StatelessWidget {
     required this.onNotificationsPreferenceChanged,
     required this.notificationReminderOption,
     required this.onNotificationReminderChanged,
+    required this.testingDateOverride,
+    required this.onTestingDateOverrideChanged,
+    required this.nowProvider,
   });
 
   final AppDependencies dependencies;
@@ -222,6 +247,9 @@ class HomeTabs extends StatelessWidget {
   final ValueChanged<bool> onNotificationsPreferenceChanged;
   final NotificationReminderOption notificationReminderOption;
   final NotificationReminderChangedCallback onNotificationReminderChanged;
+  final DateTime? testingDateOverride;
+  final TestingDateOverrideChangedCallback onTestingDateOverrideChanged;
+  final DateTime Function() nowProvider;
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +259,7 @@ class HomeTabs extends StatelessWidget {
     final baseCurrencyKey = baseCurrencyCode ?? 'none';
     final notificationsKey = notificationsEnabled ? 'on' : 'off';
     final reminderKey = notificationReminderOption.storageValue;
+    final testingDateKey = testingDateOverride?.toIso8601String() ?? 'system';
 
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
@@ -250,11 +279,11 @@ class HomeTabs extends StatelessWidget {
           key: index == 0
               ? ValueKey(
                   'subscriptions-$themeKey-$localeKey-$baseCurrencyKey-'
-                  '$notificationsKey-$reminderKey',
+                  '$notificationsKey-$reminderKey-$testingDateKey',
                 )
               : ValueKey(
                   'analytics-$themeKey-$localeKey-$baseCurrencyKey-'
-                  '$notificationsKey-$reminderKey',
+                  '$notificationsKey-$reminderKey-$testingDateKey',
                 ),
           builder: (context) {
             switch (index) {
@@ -276,6 +305,10 @@ class HomeTabs extends StatelessWidget {
                       onNotificationsPreferenceChanged,
                   notificationReminderOption: notificationReminderOption,
                   onNotificationReminderChanged: onNotificationReminderChanged,
+                  testingDateOverride: testingDateOverride,
+                  onTestingDateOverrideChanged:
+                      onTestingDateOverrideChanged,
+                  nowProvider: nowProvider,
                 );
               case 1:
                 return AnalyticsScreen(
@@ -295,6 +328,10 @@ class HomeTabs extends StatelessWidget {
                       onNotificationsPreferenceChanged,
                   notificationReminderOption: notificationReminderOption,
                   onNotificationReminderChanged: onNotificationReminderChanged,
+                  testingDateOverride: testingDateOverride,
+                  onTestingDateOverrideChanged:
+                      onTestingDateOverrideChanged,
+                  nowProvider: nowProvider,
                 );
               default:
                 return const SizedBox.shrink();
