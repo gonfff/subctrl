@@ -305,6 +305,32 @@ void main() {
     ).called(1);
   });
 
+  test(
+    'refreshOverdueNextPayments does nothing when subscriptions are empty',
+    () async {
+      subscriptionsController.add(const []);
+      tagsController.add(const []);
+      currenciesController.add(const []);
+      ratesController.add(const []);
+      await Future<void>.delayed(Duration.zero);
+
+      clearInteractions(refreshOverdueNextPaymentsUseCase);
+      await viewModel.refreshOverdueNextPayments();
+
+      verifyNever(() => refreshOverdueNextPaymentsUseCase(any()));
+    },
+  );
+
+  test(
+    'refreshOverdueNextPayments does nothing when subscriptions are loading',
+    () async {
+      clearInteractions(refreshOverdueNextPaymentsUseCase);
+      await viewModel.refreshOverdueNextPayments();
+
+      verifyNever(() => refreshOverdueNextPaymentsUseCase(any()));
+    },
+  );
+
   test('updateBaseCurrencyCode re-listens to currency rates stream', () async {
     viewModel.updateBaseCurrencyCode('eur');
     await Future<void>.delayed(Duration.zero);
