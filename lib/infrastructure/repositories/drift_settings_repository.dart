@@ -14,6 +14,7 @@ class DriftSettingsRepository implements SettingsRepository {
   static const _notificationsEnabledKey = 'notifications_enabled';
   static const _notificationReminderOffsetKey =
       'notification_reminder_offset';
+  static const _testingDateOverrideKey = 'testing_date_override';
 
   @override
   Future<String?> getBaseCurrencyCode() {
@@ -84,5 +85,25 @@ class DriftSettingsRepository implements SettingsRepository {
   @override
   Future<void> setNotificationReminderOffset(String value) {
     return _dao.saveSetting(_notificationReminderOffsetKey, value);
+  }
+
+  @override
+  Future<DateTime?> getTestingDateOverride() async {
+    final stored = await _dao.getSetting(_testingDateOverrideKey);
+    if (stored == null || stored.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(stored);
+  }
+
+  @override
+  Future<void> setTestingDateOverride(DateTime? value) {
+    final stored = value == null ? null : _formatDate(value);
+    return _dao.saveSetting(_testingDateOverrideKey, stored);
+  }
+
+  String _formatDate(DateTime value) {
+    final normalized = DateTime(value.year, value.month, value.day);
+    return normalized.toIso8601String().split('T').first;
   }
 }

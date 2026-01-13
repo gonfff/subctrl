@@ -52,6 +52,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
     required bool notificationsEnabled,
     required NotificationReminderOption notificationReminderOption,
     required Locale? initialLocale,
+    DateTime Function()? nowProvider,
   }) : _watchSubscriptionsUseCase = watchSubscriptionsUseCase,
        _addSubscriptionUseCase = addSubscriptionUseCase,
        _updateSubscriptionUseCase = updateSubscriptionUseCase,
@@ -69,7 +70,8 @@ class SubscriptionsViewModel extends ChangeNotifier {
        _scheduleNotificationsUseCase = scheduleNotificationsUseCase,
        _notificationsEnabled = notificationsEnabled,
        _notificationReminderOption = notificationReminderOption,
-       _locale = initialLocale {
+       _locale = initialLocale,
+       _nowProvider = nowProvider ?? DateTime.now {
     _baseCurrencyCode = initialBaseCurrencyCode?.toUpperCase();
     _autoDownloadEnabled = initialAutoDownloadEnabled;
     _listenToSubscriptions();
@@ -93,6 +95,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
   final GetPendingNotificationsUseCase _getPendingNotificationsUseCase;
   final CancelNotificationsUseCase _cancelNotificationsUseCase;
   final ScheduleNotificationsUseCase _scheduleNotificationsUseCase;
+  final DateTime Function() _nowProvider;
 
   bool _notificationsEnabled;
   NotificationReminderOption _notificationReminderOption;
@@ -305,7 +308,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
           latestUpdate = entry.fetchedAt;
         }
       }
-      final nowUtc = DateTime.now().toUtc();
+      final nowUtc = _nowProvider().toUtc();
       final needsRefresh =
           latestUpdate == null ||
           nowUtc.difference(latestUpdate.toUtc()) >= const Duration(days: 1);
@@ -408,7 +411,7 @@ class SubscriptionsViewModel extends ChangeNotifier {
         return;
       }
       final localizations = AppLocalizations(resolvedLocale);
-      final planner = SubscriptionNotificationPlanner();
+      final planner = SubscriptionNotificationPlanner(now: _nowProvider());
       final planned = planner.plan(
         subscriptions: _subscriptions,
         reminderOption: _notificationReminderOption,
@@ -454,6 +457,14 @@ class SubscriptionsViewModel extends ChangeNotifier {
     } finally {
       _isSyncingNotifications = false;
     }
+  }
+
+  Future<void> refreshForTestingDateChange() async {
+    await _refreshOverdueNextPayments(_subscriptions);
+    if (_autoDownloadEnabled) {
+      await _refreshCurrencyRatesForSubscriptions();
+    }
+    await _syncNotifications();
   }
 
   void _log(String message, {Object? error, StackTrace? stackTrace}) {

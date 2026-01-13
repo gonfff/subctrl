@@ -22,4 +22,8 @@ abstract class SettingsRepository {
   Future<String?> getNotificationReminderOffset();
 
   Future<void> setNotificationReminderOffset(String value);
+
+  Future<DateTime?> getTestingDateOverride();
+
+  Future<void> setTestingDateOverride(DateTime? value);
 }

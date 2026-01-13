@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 
 import 'package:subctrl/application/app_dependencies.dart';
+import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/subscription.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/theme/app_theme.dart';
 import 'package:subctrl/presentation/theme/theme_preference.dart';
-import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/presentation/types/settings_callbacks.dart';
 import 'package:subctrl/presentation/viewmodels/subscriptions_view_model.dart';
 import 'package:subctrl/presentation/widgets/add_subscription_sheet.dart';
@@ -29,6 +31,9 @@ class SubscriptionsScreen extends StatefulWidget {
     required this.onNotificationsPreferenceChanged,
     required this.notificationReminderOption,
     required this.onNotificationReminderChanged,
+    required this.testingDateOverride,
+    required this.onTestingDateOverrideChanged,
+    required this.nowProvider,
   });
 
   final AppDependencies dependencies;
@@ -44,6 +49,9 @@ class SubscriptionsScreen extends StatefulWidget {
   final ValueChanged<bool> onNotificationsPreferenceChanged;
   final NotificationReminderOption notificationReminderOption;
   final NotificationReminderChangedCallback onNotificationReminderChanged;
+  final DateTime? testingDateOverride;
+  final TestingDateOverrideChangedCallback onTestingDateOverrideChanged;
+  final DateTime Function() nowProvider;
 
   @override
   State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
@@ -84,6 +92,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       notificationsEnabled: widget.notificationsEnabled,
       notificationReminderOption: widget.notificationReminderOption,
       initialLocale: widget.selectedLocale,
+      nowProvider: widget.nowProvider,
     );
     _searchController.addListener(() {
       _viewModel.setSearchQuery(_searchController.text);
@@ -120,6 +129,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         locale: widget.selectedLocale,
       );
     }
+    if (oldWidget.testingDateOverride != widget.testingDateOverride) {
+      unawaited(_viewModel.refreshForTestingDateChange());
+    }
   }
 
   Future<void> _openAddSubscriptionSheet() async {
@@ -138,6 +150,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             currencies: currencies,
             defaultCurrencyCode: _viewModel.baseCurrencyCode,
             tags: _viewModel.tags,
+            nowProvider: widget.nowProvider,
           ),
         );
       },
@@ -164,6 +177,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             defaultCurrencyCode: _viewModel.baseCurrencyCode,
             tags: _viewModel.tags,
             initialSubscription: subscription,
+            nowProvider: widget.nowProvider,
           ),
         );
       },
@@ -263,6 +277,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               widget.onNotificationsPreferenceChanged,
           notificationReminderOption: widget.notificationReminderOption,
           onNotificationReminderChanged: widget.onNotificationReminderChanged,
+          testingDateOverride: widget.testingDateOverride,
+          onTestingDateOverrideChanged: widget.onTestingDateOverrideChanged,
+          nowProvider: widget.nowProvider,
         );
       },
     );

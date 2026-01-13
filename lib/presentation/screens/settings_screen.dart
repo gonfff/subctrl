@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/cupertino.dart';
+import 'package:subctrl/application/app_clock.dart';
 import 'package:subctrl/application/app_dependencies.dart';
 import 'package:subctrl/application/notifications/open_notification_settings_use_case.dart';
 import 'package:subctrl/application/notifications/request_notification_permission_use_case.dart';
 import 'package:subctrl/domain/entities/currency.dart';
 import 'package:subctrl/domain/entities/notification_reminder_option.dart';
 import 'package:subctrl/domain/entities/notification_permission_status.dart';
+import 'package:subctrl/domain/utils/date_utils.dart';
+import 'package:subctrl/presentation/formatters/date_formatter.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/screens/about_screen.dart';
 import 'package:subctrl/presentation/screens/currency_rates_screen.dart';
@@ -36,6 +39,9 @@ class SettingsScreen extends StatefulWidget {
     required this.onNotificationsPreferenceChanged,
     required this.notificationReminderOption,
     required this.onNotificationReminderChanged,
+    required this.testingDateOverride,
+    required this.onTestingDateOverrideChanged,
+    required this.nowProvider,
     required this.onRequestClose,
   });
 
@@ -52,6 +58,9 @@ class SettingsScreen extends StatefulWidget {
   final ValueChanged<bool> onNotificationsPreferenceChanged;
   final NotificationReminderOption notificationReminderOption;
   final NotificationReminderChangedCallback onNotificationReminderChanged;
+  final DateTime? testingDateOverride;
+  final TestingDateOverrideChangedCallback onTestingDateOverrideChanged;
+  final DateTime Function() nowProvider;
   final VoidCallback onRequestClose;
 
   @override
@@ -69,6 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _isCurrencyRatesAutoDownloadEnabled;
   late bool _notificationsEnabled;
   late NotificationReminderOption _notificationReminderOption;
+  DateTime? _currentTestingDateOverride;
 
   @override
   void initState() {
@@ -85,6 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         widget.currencyRatesAutoDownloadEnabled;
     _notificationsEnabled = widget.notificationsEnabled;
     _notificationReminderOption = widget.notificationReminderOption;
+    _currentTestingDateOverride = widget.testingDateOverride;
   }
 
   @override
@@ -141,6 +152,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         widget.notificationReminderOption) {
       setState(() {
         _notificationReminderOption = widget.notificationReminderOption;
+      });
+    }
+    if (oldWidget.testingDateOverride != widget.testingDateOverride) {
+      setState(() {
+        _currentTestingDateOverride = widget.testingDateOverride;
       });
     }
   }
@@ -433,9 +449,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
         builder: (context) => CurrencyRatesScreen(
           dependencies: widget.dependencies,
           baseCurrencyCode: baseCode,
+          nowProvider: widget.nowProvider,
         ),
       ),
     );
+  }
+
+  Future<void> _applyTestingDateOverride(DateTime? value) async {
+    try {
+      await widget.onTestingDateOverrideChanged(value);
+      if (!mounted) return;
+      setState(() {
+        _currentTestingDateOverride = value;
+      });
+    } catch (error, stackTrace) {
+      _log(
+        'Failed to persist testing date override',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  Future<void> _selectTestingDateOverride() async {
+    var tempDate = _currentTestingDateOverride ?? widget.nowProvider();
+    var resetRequested = false;
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (context) {
+        final localizations = AppLocalizations.of(context);
+        final background = CupertinoColors.systemBackground.resolveFrom(
+          context,
+        );
+        return Container(
+          color: background,
+          height: 320,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 44,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CupertinoButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      onPressed: _currentTestingDateOverride == null
+                          ? null
+                          : () {
+                              resetRequested = true;
+                              Navigator.of(context).pop();
+                            },
+                      child: Text(localizations.settingsTestingDateReset),
+                    ),
+                    CupertinoButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(localizations.done),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  mode: CupertinoDatePickerMode.date,
+                  initialDateTime: tempDate,
+                  onDateTimeChanged: (value) => tempDate = value,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (!mounted) return;
+    if (resetRequested) {
+      await _applyTestingDateOverride(null);
+      return;
+    }
+    final normalized = stripTime(tempDate);
+    await _applyTestingDateOverride(normalized);
   }
 
   @override
@@ -477,6 +569,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final reminderValue = _notificationsEnabled
             ? reminderLabel
             : localizations.settingsNotificationsStatusOff;
+        final testingDateValue = _currentTestingDateOverride == null
+            ? localizations.settingsTestingDateSystem
+            : formatDate(
+                _currentTestingDateOverride!,
+                Localizations.localeOf(context),
+              );
         return CupertinoPageScaffold(
           backgroundColor: AppTheme.scaffoldBackgroundColor(context),
           navigationBar: CupertinoNavigationBar(
@@ -518,6 +616,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+              if (kEnableTestingDateOverride)
+                CupertinoFormSection.insetGrouped(
+                  header: Text(localizations.settingsTestingSection),
+                  children: [
+                    _SettingsTile(
+                      label: localizations.settingsTestingDateLabel,
+                      value: testingDateValue,
+                      onTap: _selectTestingDateOverride,
+                      showChevron: true,
+                    ),
+                  ],
+                ),
               CupertinoFormSection.insetGrouped(
                 header: Text(localizations.settingsNotificationsTitle),
                 children: [

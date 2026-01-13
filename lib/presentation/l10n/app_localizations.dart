@@ -61,6 +61,10 @@ class AppLocalizations {
       'notificationReminderBody': '{name} will renew on {date}',
       'settingsCurrenciesSection': 'Currencies',
       'settingsCurrenciesManage': 'Manage currencies',
+      'settingsTestingSection': 'Testing',
+      'settingsTestingDateLabel': 'Testing date',
+      'settingsTestingDateSystem': 'System date',
+      'settingsTestingDateReset': 'Use system date',
       'settingsTagsSection': 'Tags',
       'settingsTagsManage': 'Manage tags',
       'settingsTagsTitle': 'Tags',
@@ -208,6 +212,10 @@ class AppLocalizations {
       'notificationReminderBody': '{name} — будет продлена {date}',
       'settingsCurrenciesSection': 'Валюты',
       'settingsCurrenciesManage': 'Управление списком',
+      'settingsTestingSection': 'Тестирование',
+      'settingsTestingDateLabel': 'Тестовая дата',
+      'settingsTestingDateSystem': 'Дата системы',
+      'settingsTestingDateReset': 'Использовать дату системы',
       'settingsTagsSection': 'Теги',
       'settingsTagsManage': 'Управление тегами',
       'settingsTagsTitle': 'Теги',
@@ -398,6 +406,12 @@ class AppLocalizations {
   String get settingsCurrenciesSection =>
       _strings['settingsCurrenciesSection']!;
   String get settingsCurrenciesManage => _strings['settingsCurrenciesManage']!;
+  String get settingsTestingSection => _strings['settingsTestingSection']!;
+  String get settingsTestingDateLabel => _strings['settingsTestingDateLabel']!;
+  String get settingsTestingDateSystem =>
+      _strings['settingsTestingDateSystem']!;
+  String get settingsTestingDateReset =>
+      _strings['settingsTestingDateReset']!;
   String get settingsTagsSection => _strings['settingsTagsSection']!;
   String get settingsTagsManage => _strings['settingsTagsManage']!;
   String get settingsTagsTitle => _strings['settingsTagsTitle']!;

@@ -36,6 +36,9 @@ class AnalyticsScreen extends StatefulWidget {
     required this.onNotificationsPreferenceChanged,
     required this.notificationReminderOption,
     required this.onNotificationReminderChanged,
+    required this.testingDateOverride,
+    required this.onTestingDateOverrideChanged,
+    required this.nowProvider,
   });
 
   final AppDependencies dependencies;
@@ -51,6 +54,9 @@ class AnalyticsScreen extends StatefulWidget {
   final ValueChanged<bool> onNotificationsPreferenceChanged;
   final NotificationReminderOption notificationReminderOption;
   final NotificationReminderChangedCallback onNotificationReminderChanged;
+  final DateTime? testingDateOverride;
+  final TestingDateOverrideChangedCallback onTestingDateOverrideChanged;
+  final DateTime Function() nowProvider;
 
   @override
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
@@ -120,7 +126,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       AnalyticsPeriod.allTime => localizations.analyticsPeriodAllTime,
     };
     final range = _currentRange();
-    final today = stripTime(DateTime.now());
+    final today = stripTime(widget.nowProvider());
     final filteredSubscriptions = _filteredSubscriptions(range, today);
     final filteredTotals = _sumAmounts(filteredSubscriptions, range, today);
     final breakdowns = _buildBreakdowns(
@@ -266,6 +272,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               widget.onNotificationsPreferenceChanged,
           notificationReminderOption: widget.notificationReminderOption,
           onNotificationReminderChanged: widget.onNotificationReminderChanged,
+          testingDateOverride: widget.testingDateOverride,
+          onTestingDateOverrideChanged: widget.onTestingDateOverrideChanged,
+          nowProvider: widget.nowProvider,
         );
       },
     );
@@ -284,7 +293,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   _DateRange _currentRange() {
-    final now = DateTime.now();
+    final now = widget.nowProvider();
     final today = stripTime(now);
     switch (_selectedPeriod) {
       case AnalyticsPeriod.month:
