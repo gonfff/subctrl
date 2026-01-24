@@ -23,7 +23,7 @@ sends optional local reminders before renewals hit.
 ## Features
 
 - Track subscriptions with local storage backed by Drift (`subctrl.db`).
-- Automatic currency conversion via Yahoo Finance rates with historical seeds to keep analytics stable offline.
+- Automatic currency conversion via a proxy rates service with historical seeds to keep analytics stable offline.
 - Analytics tabs for monthly burn, category totals, and long-term spend trends.
 - Local, timezone-aware notifications driven by `LocalNotificationsService`.
 - Clean Architecture split into presentation, application, domain, and
@@ -37,22 +37,6 @@ sends optional local reminders before renewals hit.
   <img src="assets/analytics-month.png" width="260" alt="Monthly analytics" />
   <img src="assets/analytics-overall.png" width="260" alt="Analytics overview" />
 </p>
-
-## Architecture at a Glance
-
-```
-lib/
-├─ presentation/   # UI, view models, localization
-├─ application/    # Use cases and dependency wiring
-├─ domain/         # Pure business logic + repository interfaces
-└─ infrastructure/ # Drift database, currency clients, platform services
-```
-
-- `lib/main.dart` boots the tabbed UI and wires dependencies.
-- `lib/application/app_dependencies.dart` registers repositories, use cases, and
-  disposes the `YahooFinanceCurrencyClient`.
-- Data lives in `lib/infrastructure/persistence/database.dart` (schema version 1
-  stored as `subctrl.db` in the app documents directory).
 
 ## Getting Started
 
@@ -68,26 +52,6 @@ lib/
    ```
 4. **Configure notifications** (optional): ensure the iOS simulator/device has
    notification permissions enabled so local reminders can fire.
-
-## GitHub Pages Policies
-
-Static policy/support pages for App Store review live in `docs/`. The folder now
-contains a minimal Jekyll setup (`_config.yml`, `_layouts`, and `assets`) so
-Markdown pages gain HTML wrappers when GitHub Pages builds the `gh-pages`
-branch. The `Publish Docs` workflow pushes the folder to `gh-pages` only when a
-commit touching `docs/` lands on `master`, so publishing simply means editing
-Markdown with the required front matter (`layout`, `title`, `permalink`) and
-pushing your change. Preview the pages locally with any static server (they
-render as plain Markdown locally) or let GitHub Pages handle the Jekyll build.
-
-## Testing
-
-All unit and widget tests run through `flutter test --coverage`, and coverage
-must stay above 70%. Run locally with:
-
-```bash
-flutter test --coverage
-```
 
 ## License
 

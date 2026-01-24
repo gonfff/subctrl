@@ -20,15 +20,15 @@ with the architecture below.
 
 - `lib/main.dart` bootstraps the app and tabs.
 - `lib/application/app_dependencies.dart` wires repositories, use cases, and
-  external clients; dispose `YahooFinanceCurrencyClient` when done.
+  external clients; dispose `ProxyCurrencyRatesClient` when done.
 
 ## Storage and services
 
 - Drift database in `lib/infrastructure/persistence/database.dart`, stored as
   `subctrl.db` in the app documents directory; `schemaVersion` is 1.
 - Currency seeds: `lib/infrastructure/persistence/seeds/currency_seed_data.dart`.
-- External rates: `YahooFinanceCurrencyClient` and
-  `SubscriptionCurrencyRatesClient`.
+- Currency rates backend lives in `backend/` (Cloudflare Workers); the Flutter
+  app uses `ProxyCurrencyRatesClient` and `SubscriptionCurrencyRatesClient`.
 - Notifications: `LocalNotificationsService` (timezone aware).
 
 ## Repo map
@@ -37,6 +37,7 @@ with the architecture below.
 - `lib/application/` use cases and DI
 - `lib/domain/` entities/repositories/services
 - `lib/infrastructure/` persistence/currency/platform/repositories
+- `backend/` Cloudflare Worker for currency rates
 - `test/` mirrors layers
 
 ## Coding and testing

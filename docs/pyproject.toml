@@ -1,7 +1,7 @@
 [project]
-name = "safex-docs"
+name = "subctrl-docs"
 version = "0.1.0"
-description = "Safex docs"
+description = "Subctrl docs"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

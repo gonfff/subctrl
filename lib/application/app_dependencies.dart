@@ -34,8 +34,8 @@ import 'package:subctrl/application/tags/create_tag_use_case.dart';
 import 'package:subctrl/application/tags/delete_tag_use_case.dart';
 import 'package:subctrl/application/tags/update_tag_use_case.dart';
 import 'package:subctrl/application/tags/watch_tags_use_case.dart';
+import 'package:subctrl/infrastructure/currency/proxy_currency_client.dart';
 import 'package:subctrl/infrastructure/currency/subscription_currency_rates_client.dart';
-import 'package:subctrl/infrastructure/currency/yahoo_finance_client.dart';
 import 'package:subctrl/infrastructure/persistence/daos/currencies_dao.dart';
 import 'package:subctrl/infrastructure/persistence/daos/currency_rates_dao.dart';
 import 'package:subctrl/infrastructure/persistence/daos/settings_dao.dart';
@@ -88,8 +88,8 @@ class AppDependencies {
     required this.scheduleNotificationsUseCase,
     required this.requestNotificationPermissionUseCase,
     required this.openNotificationSettingsUseCase,
-    required YahooFinanceCurrencyClient yahooFinanceCurrencyClient,
-  }) : _yahooFinanceCurrencyClient = yahooFinanceCurrencyClient;
+    required ProxyCurrencyRatesClient proxyCurrencyRatesClient,
+  }) : _proxyCurrencyRatesClient = proxyCurrencyRatesClient;
 
   factory AppDependencies() {
     final database = AppDatabase();
@@ -107,9 +107,9 @@ class AppDependencies {
     );
     final tagRepository = DriftTagRepository(tagsDao);
     final settingsRepository = DriftSettingsRepository(settingsDao);
-    final yahooFinanceClient = YahooFinanceCurrencyClient();
+    final proxyRatesClient = ProxyCurrencyRatesClient();
     final subscriptionRatesClient = SubscriptionCurrencyRatesClient(
-      yahooFinanceCurrencyClient: yahooFinanceClient,
+      proxyCurrencyClient: proxyRatesClient,
       currencyRepository: currencyRepository,
     );
     final localNotificationsService = LocalNotificationsService();
@@ -182,19 +182,18 @@ class AppDependencies {
       getPendingNotificationsUseCase: GetPendingNotificationsUseCase(
         localNotificationsService,
       ),
-      cancelNotificationsUseCase:
-          CancelNotificationsUseCase(localNotificationsService),
+      cancelNotificationsUseCase: CancelNotificationsUseCase(
+        localNotificationsService,
+      ),
       scheduleNotificationsUseCase: ScheduleNotificationsUseCase(
         localNotificationsService,
       ),
       requestNotificationPermissionUseCase:
-          RequestNotificationPermissionUseCase(
-        notificationPermissionService,
-      ),
+          RequestNotificationPermissionUseCase(notificationPermissionService),
       openNotificationSettingsUseCase: OpenNotificationSettingsUseCase(
         notificationPermissionService,
       ),
-      yahooFinanceCurrencyClient: yahooFinanceClient,
+      proxyCurrencyRatesClient: proxyRatesClient,
     );
   }
 
@@ -242,9 +241,9 @@ class AppDependencies {
   requestNotificationPermissionUseCase;
   final OpenNotificationSettingsUseCase openNotificationSettingsUseCase;
 
-  final YahooFinanceCurrencyClient _yahooFinanceCurrencyClient;
+  final ProxyCurrencyRatesClient _proxyCurrencyRatesClient;
 
   void dispose() {
-    _yahooFinanceCurrencyClient.close();
+    _proxyCurrencyRatesClient.close();
   }
 }

@@ -6,7 +6,6 @@ class CurrencySeed {
   final String? symbol;
 }
 
-/// Built-in currencies are limited to the codes supported by Yahoo Finance FX.
 const List<CurrencySeed> currencySeeds = [
   CurrencySeed(code: 'AED', name: 'United Arab Emirates Dirham', symbol: 'د.إ'),
   CurrencySeed(code: 'ARS', name: 'Argentine Peso', symbol: r'$'),
