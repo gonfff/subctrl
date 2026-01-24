@@ -1,0 +1,40 @@
+[project]
+name = "rates-proxy"
+version = "0.1.0"
+description = "Currency rates proxy"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "webtypy>=0.1.7",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "pyright>=1.1.402",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.14",
+    "workers-py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "C4", "A"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+extraPaths = ["src", "tests"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
