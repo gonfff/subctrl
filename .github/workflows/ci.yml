@@ -3,7 +3,11 @@ name: Flutter Tests
 on:
   push:
     branches: [master]
+    paths-ignore:
+      - "backend/**"
   pull_request:
+    paths-ignore:
+      - "backend/**"
 
 jobs:
   test:
