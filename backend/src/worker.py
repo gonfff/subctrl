@@ -19,7 +19,6 @@ class Default(WorkerEntrypoint):
             use_case=_USE_CASE,
             config=_CONFIG,
         )
-
         if result.body is None:
             return Response(status=result.status, headers=result.headers)
         return Response(result.body, status=result.status, headers=result.headers)
