@@ -5,8 +5,7 @@ import 'package:subctrl/domain/entities/tag.dart';
 import 'package:subctrl/presentation/formatters/date_formatter.dart';
 import 'package:subctrl/presentation/l10n/app_localizations.dart';
 import 'package:subctrl/presentation/mappers/billing_cycle_labels.dart';
-import 'package:subctrl/presentation/widgets/currency_picker.dart';
-import 'package:subctrl/presentation/widgets/tag_picker.dart';
+import 'package:subctrl/presentation/utils/color_utils.dart';
 
 class AddSubscriptionSheet extends StatefulWidget {
   const AddSubscriptionSheet({
@@ -120,42 +119,99 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
   }
 
   Future<void> _pickCurrency(FormFieldState<String> state) async {
-    final selected = await showCurrencyPicker(
-      context: context,
-      currencies: widget.currencies,
-      selectedCode: _currencyCode,
-    );
-    if (selected != null) {
-      setState(() => _currencyCode = selected.toUpperCase());
-      state.didChange(_currencyCode);
-    }
-  }
-
-  Future<void> _pickCycle(FormFieldState<BillingCycle> state) async {
+    if (widget.currencies.isEmpty) return;
     final localizations = AppLocalizations.of(context);
-    final cycle = await showCupertinoModalPopup<BillingCycle>(
+    var tempIndex = widget.currencies.indexWhere(
+      (currency) => currency.code.toUpperCase() == _currencyCode.toUpperCase(),
+    );
+    if (tempIndex < 0) tempIndex = 0;
+    final controller = FixedExtentScrollController(initialItem: tempIndex);
+
+    await showCupertinoModalPopup<void>(
       context: context,
       builder: (context) {
         return CupertinoActionSheet(
-          title: Text(localizations.periodLabel),
-          actions: [
-            for (final option in _orderedCycles)
-              CupertinoActionSheetAction(
-                onPressed: () => Navigator.of(context).pop(option),
-                child: Text(billingCycleLongLabel(option, localizations)),
-              ),
-          ],
+          title: Text(localizations.currencyLabel),
+          message: SizedBox(
+            height: 200,
+            child: CupertinoPicker(
+              itemExtent: 32,
+              scrollController: controller,
+              onSelectedItemChanged: (index) => tempIndex = index,
+              children: widget.currencies
+                  .map(
+                    (currency) => Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((currency.symbol ?? '').trim().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Text(currency.symbol!.trim()),
+                            ),
+                          Text(currency.code.toUpperCase()),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
           cancelButton: CupertinoActionSheetAction(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(localizations.settingsClose),
+            child: Text(localizations.done),
           ),
         );
       },
     );
-    if (cycle != null) {
-      setState(() => _cycle = cycle);
-      state.didChange(cycle);
-    }
+
+    if (!mounted) return;
+    final selected = widget.currencies[tempIndex];
+    setState(() => _currencyCode = selected.code.toUpperCase());
+    state.didChange(_currencyCode);
+  }
+
+  Future<void> _pickCycle(FormFieldState<BillingCycle> state) async {
+    final localizations = AppLocalizations.of(context);
+    final initialIndex = _orderedCycles.indexOf(_cycle);
+    var tempIndex = initialIndex < 0 ? 0 : initialIndex;
+    final controller = FixedExtentScrollController(initialItem: tempIndex);
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (context) {
+        return CupertinoActionSheet(
+          title: Text(localizations.periodLabel),
+          message: SizedBox(
+            height: 200,
+            child: CupertinoPicker(
+              itemExtent: 40,
+              scrollController: controller,
+              onSelectedItemChanged: (index) => tempIndex = index,
+              children: _orderedCycles
+                  .map(
+                    (option) => Center(
+                      child: Text(
+                        billingCycleLongLabel(option, localizations),
+                        style: CupertinoTheme.of(
+                          context,
+                        ).textTheme.textStyle.copyWith(fontSize: 19),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(localizations.done),
+          ),
+        );
+      },
+    );
+    if (!mounted) return;
+    final selected = _orderedCycles[tempIndex];
+    setState(() => _cycle = selected);
+    state.didChange(selected);
   }
 
   Future<void> _pickPurchaseDate(FormFieldState<DateTime?> state) async {
@@ -164,37 +220,21 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
       context: context,
       builder: (context) {
         final localizations = AppLocalizations.of(context);
-        final background = CupertinoColors.systemBackground.resolveFrom(
-          context,
-        );
-        return Container(
-          color: background,
-          height: 320,
-          child: Column(
-            children: [
-              SizedBox(
-                height: 44,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CupertinoButton(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(localizations.done),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.date,
-                  initialDateTime: tempDate,
-                  minimumDate: DateTime(DateTime.now().year - 10),
-                  maximumDate: DateTime(DateTime.now().year + 5),
-                  onDateTimeChanged: (value) => tempDate = value,
-                ),
-              ),
-            ],
+        return CupertinoActionSheet(
+          title: Text(localizations.purchaseDateLabel),
+          message: SizedBox(
+            height: 200,
+            child: CupertinoDatePicker(
+              mode: CupertinoDatePickerMode.date,
+              initialDateTime: tempDate,
+              minimumDate: DateTime(DateTime.now().year - 10),
+              maximumDate: DateTime(DateTime.now().year + 5),
+              onDateTimeChanged: (value) => tempDate = value,
+            ),
+          ),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(localizations.done),
           ),
         );
       },
@@ -206,20 +246,73 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
 
   Future<void> _pickTag(FormFieldState<int?> state) async {
     if (widget.tags.isEmpty) return;
-    final result = await showTagPicker(
-      context: context,
-      tags: widget.tags,
-      selectedTagId: _selectedTagId,
+    final localizations = AppLocalizations.of(context);
+    final options = [
+      _TagOption.none(localizations.subscriptionTagNone),
+      ...widget.tags.map((tag) => _TagOption.tag(tag)),
+    ];
+    var initialIndex = options.indexWhere(
+      (option) => option.matches(_selectedTagId),
     );
-    if (result == null) return;
+    if (initialIndex < 0) initialIndex = 0;
+    var tempIndex = initialIndex;
+    final controller = FixedExtentScrollController(initialItem: tempIndex);
+
+    await showCupertinoModalPopup<void>(
+      context: context,
+      builder: (context) {
+        return CupertinoActionSheet(
+          title: Text(localizations.subscriptionTagLabel),
+          message: SizedBox(
+            height: 200,
+            child: CupertinoPicker(
+              itemExtent: 40,
+              scrollController: controller,
+              onSelectedItemChanged: (index) => tempIndex = index,
+              children: options
+                  .map(
+                    (option) => Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (option.colorHex != null)
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorFromHex(
+                                  option.colorHex!,
+                                  fallbackColor: const Color(0xFF000000),
+                                ),
+                              ),
+                            ),
+                          if (option.colorHex != null) const SizedBox(width: 8),
+                          Text(
+                            option.label,
+                            style: CupertinoTheme.of(
+                              context,
+                            ).textTheme.textStyle.copyWith(fontSize: 19),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(localizations.done),
+          ),
+        );
+      },
+    );
+
     if (!mounted) return;
-    if (result == -1) {
-      setState(() => _selectedTagId = null);
-      state.didChange(null);
-    } else {
-      setState(() => _selectedTagId = result);
-      state.didChange(result);
-    }
+    final selected = options[tempIndex];
+    setState(() => _selectedTagId = selected.tagId);
+    state.didChange(selected.tagId);
   }
 
   void _handleSubmit() {
@@ -656,4 +749,19 @@ class _AddSubscriptionSheetState extends State<AddSubscriptionSheet> {
       ),
     );
   }
+}
+
+class _TagOption {
+  const _TagOption._(this.tagId, this.label, this.colorHex);
+
+  factory _TagOption.none(String label) => _TagOption._(null, label, null);
+
+  factory _TagOption.tag(Tag tag) =>
+      _TagOption._(tag.id, tag.name, tag.colorHex);
+
+  final int? tagId;
+  final String label;
+  final String? colorHex;
+
+  bool matches(int? selectedTagId) => tagId == selectedTagId;
 }
