@@ -8,6 +8,7 @@ Future<String?> showCurrencyPicker({
   required BuildContext context,
   required List<Currency> currencies,
   String? selectedCode,
+  bool showSearch = true,
 }) {
   final localizations = AppLocalizations.of(context);
   String query = '';
@@ -28,45 +29,26 @@ Future<String?> showCurrencyPicker({
             return label.contains(normalizedQuery);
           }).toList();
 
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            color: backgroundColor,
-            child: SafeArea(
-              top: false,
+          final visibleCurrencies = showSearch ? filtered : currencies;
+          return CupertinoActionSheet(
+            title: Text(localizations.currencyPickerTitle),
+            message: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.55,
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            localizations.currencyPickerTitle,
-                            style: CupertinoTheme.of(
-                              context,
-                            ).textTheme.navTitleTextStyle,
-                          ),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(localizations.settingsClose),
-                        ),
-                      ],
+                  if (showSearch) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: CupertinoSearchTextField(
+                        placeholder: localizations.currencySearchPlaceholder,
+                        onChanged: (value) =>
+                            setModalState(() => query = value),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: CupertinoSearchTextField(
-                      placeholder: localizations.currencySearchPlaceholder,
-                      onChanged: (value) => setModalState(() => query = value),
-                    ),
-                  ),
+                    const SizedBox(height: 8),
+                  ],
                   Expanded(
-                    child: filtered.isEmpty
+                    child: visibleCurrencies.isEmpty
                         ? Center(
                             child: Text(
                               localizations.currencySearchEmpty,
@@ -77,11 +59,11 @@ Future<String?> showCurrencyPicker({
                           )
                         : ListView.separated(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
+                              horizontal: 8,
+                              vertical: 4,
                             ),
                             itemBuilder: (context, index) {
-                              final currency = filtered[index];
+                              final currency = visibleCurrencies[index];
                               final code = currency.code;
                               final isSelected =
                                   normalizedSelected != null &&
@@ -126,11 +108,15 @@ Future<String?> showCurrencyPicker({
                             },
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 8),
-                            itemCount: filtered.length,
+                            itemCount: visibleCurrencies.length,
                           ),
                   ),
                 ],
               ),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(localizations.settingsClose),
             ),
           );
         },
